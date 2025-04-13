@@ -1,0 +1,201 @@
+/* General Page Styling */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Fixed Header Styling */
+header {
+    background-color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.logo {
+    max-width: 100px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
+
+nav ul li a:hover {
+    color: #ff69b4; /* Girlish pink color for hover effect */
+}
+
+/* Hero Section Styling */
+.hero-section {
+    background: url('indexbackground.png') no-repeat center center/cover;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px;
+}
+
+.hero-text {
+    background-color: rgba(255, 182, 193, 0.9); /* Light pink background */
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+}
+
+.hero-text h1 {
+    color: #333;
+}
+
+.hero-text p {
+    color: #333;
+}
+
+/* Info Sections Styling */
+.info-sections {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 40px;
+    background-color: #fff0f5; /* Light lavender pink */
+}
+
+.info-box {
+    background-color: #ffe4e1; /* Light pastel color */
+    width: 30%;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.info-box h2 {
+    color: #ff69b4;
+}
+
+.info-box img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+    border-radius: 8px;
+}
+
+/* About Page Styling */
+.about-section {
+    padding: 80px 20px; /* To make space for the fixed header */
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-section h1 {
+    color: #ff69b4;
+}
+
+.about-section p {
+    margin: 20px 0;
+}
+
+.about-image {
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+/* Footer Styling */
+footer {
+    background-color: #ff69b4;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    position: relative;
+}
+
+/*------------------------------------------------------------------------------------------------
+/* Contact Form Styling */
+.contact-section {
+    margin-top: 80px; /* Add top margin to push down below fixed header */
+    padding: 20px; /* Add padding to the content */
+}
+
+.contact-section h1 {
+    margin-top: 0; /* Remove margin from the top of the heading */
+}
+
+  
+.contact-form {
+    background-color: #fce4ec; /* Light pink background */
+    border: 1px solid #e91e63; /* Raspberry border */
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: 20px auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contact-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ad1457; /* Raspberry text color */
+}
+
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form select,
+.contact-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #fff5f8; /* Soft pink */
+}
+
+.contact-form textarea {
+    resize: vertical; /* Allow vertical resizing */
+}
+
+.submit-button {
+    background-color: #e91e63; /* Raspberry button */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #c2185b; /* Darker pink on hover */
+}
+/*------------------------------------------------------------------------------------------------
+*/
+.blog-section {
+    margin-top: 80px; /* Add top margin to push down below fixed header */
+    padding: 20px; /* Add padding to the content */
+}
+
+.blog-section h1 {
+    margin-top: 0; /* Remove margin from the top of the heading */
+}
