@@ -1,0 +1,124 @@
+.chat {
+  padding: 2rem;
+  text-align: center;
+}
+
+.chat-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 80px); /* Adjust height considering Navbar */
+  padding-top: 80px; /* Add padding to account for fixed Navbar */
+}
+
+.chat-box {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: #ff69b4; /* Primary pink */
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 80%;
+  word-wrap: break-word; /* Prevent long words from overflowing */
+}
+
+.message.user {
+  align-self: flex-end;
+  background-color: #e91e63; /* Raspberry */
+  color: white;
+}
+
+.message.bot {
+  align-self: flex-start;
+  background-color: #fce4ec; /* Light pink */
+  color: #333; /* Dark text */
+}
+
+.message.error {
+  background-color: #fff3cd; /* Light yellow for warning */
+  color: #856404; /* Dark yellow/brown text */
+  border: 1px solid #ffeeba; /* Light yellow border */
+  font-size: 0.9rem;
+  align-self: center; /* Center error messages */
+  text-align: center;
+}
+
+.typing-indicator {
+    font-style: italic;
+    color: #666; /* Gray color */
+    align-self: flex-start;
+}
+
+/* Basic Avatar Styling (You can enhance this later) */
+.message::before {
+    content: ''; /* Placeholder for avatar */
+    display: inline-block;
+    width: 25px; /* Avatar size */
+    height: 25px;
+    border-radius: 50%; /* Circular avatar */
+    margin-right: 8px;
+    vertical-align: middle;
+    background-color: #ccc; /* Default gray avatar background */
+}
+
+.message.user::before {
+    order: 1; /* Place avatar after message for user */
+    margin-right: 0;
+    margin-left: 8px;
+    background-color: #ff69b4; /* Primary pink for user avatar */
+}
+
+.message.bot::before {
+    order: 0; /* Place avatar before message for bot */
+    background-color: #a0d9b4; /* Different color for bot avatar */
+}
+
+.chat-input {
+  padding: 10px;
+  border-top: 1px solid #eee;
+  display: flex;
+}
+
+.chat-input input {
+  flex-grow: 1;
+  margin-right: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.chat-input button {
+  padding: 8px 15px;
+  background-color: #ff69b4; /* Primary pink */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chat-input button:hover {
+  background-color: #e54d85; /* Darker pink on hover */
+} 

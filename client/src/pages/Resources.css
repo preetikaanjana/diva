@@ -1,0 +1,17 @@
+.resources {
+  padding: 2rem;
+  text-align: center;
+}
+
+.resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.resource-item {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 5px;
+} 

@@ -1,0 +1,16 @@
+    # Ignore environment variables file
+    .env
+
+    # Ignore Node.js modules
+    node_modules/
+
+    # Ignore Python virtual environment (if you created one)
+    .venv/
+
+    # Ignore build outputs (for React)
+    build/
+
+    # Ignore react-scripts build artifacts
+    .cache/
+    .eslintcache
+    coverage/

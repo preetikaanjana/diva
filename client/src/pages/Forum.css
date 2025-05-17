@@ -1,0 +1,93 @@
+.forum-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  text-align: center;
+  margin-top: 80px; /* Add top margin to push down below fixed header */
+}
+
+.forum-container h1 {
+    color: #ff69b4; /* Primary pink for heading */
+    margin-bottom: 0.5rem;
+}
+
+.create-post-button {
+    display: inline-block;
+    background-color: #ff69b4; /* Primary pink */
+    color: white; /* White text */
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px; /* Pill-shaped button */
+    text-decoration: none; /* Remove underline from link */
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 2rem; /* Space below the button */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.create-post-button:hover {
+    background-color: #e54d85; /* Darker pink on hover */
+    transform: translateY(-2px); /* Slight lift effect on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.plus-icon {
+    margin-right: 8px;
+    font-size: 1.2rem;
+    vertical-align: middle;
+}
+
+.posts-list {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.post-item {
+  background-color: #fff0f5; /* Light lavender pink */
+  border: 1px solid #ffe4e1; /* Light pastel border */
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.post-item h2 {
+  color: #e91e63; /* Raspberry for post titles */
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  color: #666; /* Gray color for meta information */
+  margin-bottom: 1rem;
+}
+
+.post-tags {
+  margin-bottom: 1rem;
+}
+
+.post-tag {
+  display: inline-block;
+  background-color: #ffb6c1; /* Light pink for tags */
+  color: #333; /* Dark text for tags */
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.post-item button {
+  background-color: #ff69b4; /* Primary pink button */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.post-item button:hover {
+  background-color: #e54d85; /* Darker pink on hover */
+} 

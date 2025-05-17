@@ -1,0 +1,37 @@
+.footer {
+  background-color: #ff69b4; /* Hot pink background */
+  color: white; /* White text color */
+  padding: 2rem 1rem;
+  text-align: center;
+  margin-top: 3rem; /* Add some space above the footer */
+}
+
+.footer-content h3 {
+  margin-top: 0;
+  color: white; /* Ensure heading is white */
+}
+
+.footer-content p {
+  margin-bottom: 1rem;
+  color: white; /* Ensure paragraphs are white */
+}
+
+.social-links a {
+  color: white; /* White links */
+  margin: 0 0.8rem;
+  text-decoration: underline;
+}
+
+.social-links a:hover {
+  text-decoration: none; /* Remove underline on hover */
+}
+
+.copyright {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.footer-content p:last-child {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+} 

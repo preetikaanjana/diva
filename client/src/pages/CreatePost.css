@@ -1,0 +1,63 @@
+.create-post-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 1rem;
+  margin-top: 80px; /* Add top margin to push down below fixed header */
+}
+
+.create-post-container h1 {
+    color: #ff69b4; /* Primary pink for heading */
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.create-post-form {
+  background-color: #fff0f5; /* Light lavender pink */
+  border: 1px solid #ffe4e1; /* Light pastel border */
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #e91e63; /* Raspberry for labels */
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ffe4e1; /* Light pastel border for inputs */
+  border-radius: 5px;
+  box-sizing: border-box;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  min-height: 200px;
+  resize: vertical;
+}
+
+.create-post-form button[type="submit"] {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background-color: #ff69b4; /* Primary pink button */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.create-post-form button[type="submit"]:hover {
+  background-color: #e54d85; /* Darker pink on hover */
+} 
