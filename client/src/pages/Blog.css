@@ -1,0 +1,109 @@
+.blog-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Blog Header - Category and Sort Section */
+.blog-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.category-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.category-dropdown,
+.sort-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-dropdown label,
+.sort-section label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.category-dropdown select,
+.sort-section select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.category-dropdown select:focus,
+.sort-section select:focus {
+  outline: none;
+  border-color: #ff69b4;
+  box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.1);
+}
+
+/* Blog Content */
+.blog-content {
+  min-height: 400px;
+}
+
+.blog-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.blog-placeholder {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+}
+
+.placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 1rem;
+}
+
+.blog-placeholder h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.blog-placeholder p {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .blog-container {
+    padding: 1rem;
+  }
+  
+  .category-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .category-dropdown,
+  .sort-section {
+    justify-content: space-between;
+  }
+  
+  .category-dropdown select,
+  .sort-section select {
+    min-width: 120px;
+  }
+}
