@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { userDB } from '../../utils/database';
 import './Auth.css';
 
 const Login = () => {
@@ -31,16 +32,16 @@ const Login = () => {
     }
 
     try {
-      // Simulate login - in a real app, you'd make an API call here
-      const userData = {
-        email: formData.email,
-        username: formData.email.split('@')[0],
-        followers: 1,
-        following: 5,
-        bio: 'eww People',
-        posts: 0
-      };
+      // Verify password from database
+      const verifiedUser = userDB.verifyPassword(formData.email, formData.password);
       
+      if (!verifiedUser) {
+        setError('Invalid email or password');
+        return;
+      }
+      
+      // Login the user (without password in the user object for security)
+      const { password, ...userData } = verifiedUser;
       login(userData);
       navigate('/profile');
     } catch (err) {
@@ -64,16 +65,36 @@ const Login = () => {
     }
 
     try {
-      // Simulate signup - in a real app, you'd make an API call here
-      const userData = {
-        username: formData.email.split('@')[0],
+      // Check if user already exists
+      const existingUser = userDB.getUserByEmail(formData.email);
+      if (existingUser) {
+        setError('An account with this email already exists');
+        return;
+      }
+
+      // Create user in database with password
+      const username = formData.email.split('@')[0];
+      const existingUsername = userDB.getUserByUsername(username);
+      if (existingUsername) {
+        setError('Username already taken. Please use a different email.');
+        return;
+      }
+
+      const newUser = userDB.createUser({
+        username: username,
+        fullName: username,
         email: formData.email,
+        password: formData.password, // Store password (in production, hash it)
         followers: 0,
         following: 0,
         bio: 'New user',
-        posts: 0
-      };
+        posts: 0,
+        profileImage: null,
+        isPrivate: false // Default to public account
+      });
       
+      // Login the user (without password in the user object for security)
+      const { password, ...userData } = newUser;
       login(userData);
       navigate('/profile');
     } catch (err) {

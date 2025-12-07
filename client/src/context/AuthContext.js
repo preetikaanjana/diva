@@ -23,8 +23,11 @@ export const AuthProvider = ({ children }) => {
       
       if (authStatus === 'true' && userData) {
         try {
+          const user = JSON.parse(userData);
+          // Check if user exists in database, if not, they might be an old user
+          // For now, just set the user (migration can happen on next login)
           setIsAuthenticated(true);
-          setUser(JSON.parse(userData));
+          setUser(user);
         } catch (error) {
           console.error('Error parsing user data:', error);
           logout();

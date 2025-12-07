@@ -1,0 +1,134 @@
+/* BlogDetail.css */
+
+.blog-detail-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 20px;
+  min-height: 80vh;
+}
+
+/* Navigation */
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #ff69b4;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  transform: translateX(-5px);
+  color: #e91e63;
+}
+
+/* Main Card Style */
+.blog-detail-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(255, 105, 180, 0.1); /* Soft pink glow */
+  border: 1px solid #ffe4ef;
+  overflow: hidden;
+  animation: slideUp 0.4s ease-out;
+}
+
+/* Header Area */
+.blog-detail-header {
+  padding: 40px 40px 20px 40px;
+  background: linear-gradient(to bottom, #fff0f6 0%, #fff 100%);
+}
+
+.blog-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.blog-tags-list {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-tag {
+  background: #ff69b4;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-date {
+  color: #999;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.detail-title {
+  font-size: 2.5rem;
+  color: #333;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Pink Divider */
+.detail-divider {
+  height: 4px;
+  width: 60px;
+  background: linear-gradient(90deg, #ff69b4, #e91e63);
+  margin: 0 40px;
+  border-radius: 2px;
+}
+
+/* Text Content */
+.blog-detail-content {
+  padding: 30px 40px 60px 40px;
+  color: #444;
+  font-size: 1.125rem; /* Slightly larger text */
+  line-height: 1.8;
+}
+
+.blog-detail-content p {
+  margin-bottom: 1.5rem;
+}
+
+/* Animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading/Error */
+.blog-detail-loading,
+.blog-detail-error {
+  text-align: center;
+  padding-top: 60px;
+  color: #666;
+  font-size: 1.2rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .detail-title {
+    font-size: 1.8rem;
+  }
+  
+  .blog-detail-header, 
+  .blog-detail-content {
+    padding: 24px;
+  }
+  
+  .detail-divider {
+    margin: 0 24px;
+  }
+}

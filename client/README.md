@@ -1,4 +1,4 @@
-# Devi - React Social Platform
+# Diva - React Social Platform
 
 A complete React application with authentication, profile management, and social features built with modern web technologies.
 
@@ -149,7 +149,7 @@ The application uses a consistent color scheme:
 
 ## License
 
-This project is part of the Devi platform and follows the same licensing terms.
+This project is part of the Diva platform and follows the same licensing terms.
 
 ---
 

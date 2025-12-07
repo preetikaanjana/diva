@@ -6,10 +6,10 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/">Devi</Link>
+        <Link to="/">Diva</Link>
       </div>
       <ul className="navbar-links">
-        <li><Link to="/">Home</Link></li>
+        <li><Link to="/">🏠 Home</Link></li>
         <li><Link to="/resources">Resources</Link></li>
         <li><Link to="/forum">Forum</Link></li>
         <li><Link to="/chat">Chat</Link></li>

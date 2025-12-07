@@ -1,0 +1,71 @@
+.feed-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  padding: 24px;
+}
+
+.stories-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.story {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.story-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: #ffc1dd;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feed-card {
+  background: #ffe6f0;
+  border: 1px solid #ffc1dd;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.feed-card-header { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 36px; height: 36px; border-radius: 999px; background:#ff9fc6; display:grid; place-items:center; color:#fff; font-weight:600; }
+.meta { font-size: 12px; color:#555; }
+.author { font-weight: 600; font-size: 14px; color:#333; }
+.time { opacity: 0.8; }
+.feed-title { margin: 8px 0; }
+.feed-content { white-space: pre-wrap; }
+.feed-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.tag { background:#fff; border:1px solid #ffd0e6; padding:2px 8px; border-radius:999px; font-size:12px; }
+
+.feed-right { position: sticky; top: 16px; height: fit-content; }
+.suggestions { display: grid; gap: 12px; }
+.suggestions-title { font-weight:700; margin-bottom:4px; }
+.suggestion-card { background:#fff; border:1px solid #ffd0e6; border-radius:12px; padding:12px; display:flex; gap:10px; align-items:flex-start; }
+.s-avatar { width:44px; height:44px; border-radius:999px; background:#ffc1dd; display:grid; place-items:center; font-weight:700; color:#e91e63; }
+.s-body { flex:1; }
+.s-name { font-weight:600; }
+.s-bio { font-size:12px; color:#666; margin-top:2px; }
+.follow-btn { background:#ff69b4; color:#fff; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; height:fit-content; }
+.primary-cta, .secondary-cta { display:block; text-align:center; padding:10px 12px; border-radius:8px; margin-top:8px; text-decoration:none; }
+.primary-cta { background: linear-gradient(135deg, #ff69b4 0%, #e91e63 100%); color:#fff; }
+.secondary-cta { background:#ffe6f0; color:#e91e63; border:1px solid #ffc1dd; }
+
+@media (max-width: 960px) {
+  .feed-layout { grid-template-columns: 1fr; }
+}
+
+

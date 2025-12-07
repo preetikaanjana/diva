@@ -1,0 +1,239 @@
+/* =========================================
+   1. GLOBAL RESET
+   ========================================= */
+* {
+  box-sizing: border-box;
+}
+
+.create-blog-wrapper {
+  background-color: #fafafa; /* Clean white/grey background */
+  width: 100%;
+  min-height: 100vh;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Keeps everything centered */
+}
+
+.create-blog-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #e91e63; /* Dark Pink Title */
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* =========================================
+   2. MAIN CARD - THE "PROPER DARK PINK BOX"
+   ========================================= */
+.create-blog-card-wide {
+  /* WIDTH: Decreased to look like a document/form */
+  width: 100%; 
+  max-width: 850px; /* <--- This is the fix for the width */
+  
+  /* BOX STYLE: White body, Dark Pink Border */
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  
+  /* THE DARK PINK BORDER */
+  border: 2px solid #e91e63; 
+  
+  /* Subtle pink shadow */
+  box-shadow: 0 8px 20px rgba(233, 30, 99, 0.1);
+  
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Ensure inputs fill the card */
+.create-blog-card-wide > div {
+  width: 100%;
+}
+
+/* =========================================
+   3. INPUTS
+   ========================================= */
+.field-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.text-input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #ff80ab; /* Darker pink border for inputs */
+  border-radius: 8px;
+  font-size: 16px;
+  background: #fff;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #e91e63;
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+}
+
+/* =========================================
+   4. IMAGE UPLOAD
+   ========================================= */
+.image-upload-box {
+  width: 100%;
+  height: 150px;
+  border: 2px dashed #e91e63; /* Dark Pink Dashed Line */
+  background: #fff0f6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: #e91e63;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.image-preview-container {
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 2px solid #e91e63;
+  margin-top: 10px;
+  position: relative;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: #e91e63;
+  color: #fff; border: none;
+  border-radius: 50%; width: 30px; height: 30px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* =========================================
+   5. TAGS & EDITOR
+   ========================================= */
+.tag-input-wrapper {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #ff80ab;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.tag-chip {
+  background: #fce4ec;
+  color: #c2185b;
+  padding: 5px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  border: 1px solid #f48fb1;
+}
+
+.tag-chip-remove {
+  background: none; border: none; color: #c2185b; cursor: pointer;
+}
+
+.tag-input-field {
+  flex: 1; border: none; outline: none; font-size: 16px; background: transparent;
+}
+
+/* EDITOR */
+.rich-text-editor {
+  border: 1px solid #ff80ab;
+  border-radius: 8px;
+  min-height: 350px;
+  background: white;
+}
+
+.rich-text-toolbar {
+  padding: 10px;
+  background: #fff0f6;
+  border-bottom: 1px solid #ff80ab;
+}
+
+.rich-text-toolbar button {
+  padding: 5px 12px;
+  margin-right: 8px;
+  border: 1px solid #ff80ab;
+  background: #fff;
+  color: #e91e63;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.rich-text-content {
+  padding: 25px;
+  min-height: 300px;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   6. BUTTONS - SIDE BY SIDE
+   ========================================= */
+.button-group-wide {
+  width: 100%;
+  display: flex;
+  flex-direction: row; 
+  justify-content: flex-end;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.publish-btn, .save-draft-btn {
+  width: 200px;
+  padding: 12px 0;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.publish-btn {
+  background: #e91e63; /* Dark Pink Button */
+  color: white;
+  border: none;
+}
+
+.save-draft-btn {
+  background: white;
+  color: #e91e63;
+  border: 2px solid #e91e63;
+}
+
+/* MOBILE FIX */
+@media (max-width: 768px) {
+  .create-blog-card-wide {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  .button-group-wide {
+    flex-direction: column;
+  }
+  .publish-btn, .save-draft-btn {
+    width: 100%;
+  }
+}

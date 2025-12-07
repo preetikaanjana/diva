@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { userDB } from '../../utils/database';
 import './Auth.css';
 
 const Signup = () => {
@@ -42,16 +43,35 @@ const Signup = () => {
     }
 
     try {
-      // Simulate signup - in a real app, you'd make an API call here
-      const userData = {
+      // Check if user already exists
+      const existingUser = userDB.getUserByEmail(formData.email);
+      if (existingUser) {
+        setError('An account with this email already exists');
+        return;
+      }
+
+      const existingUsername = userDB.getUserByUsername(formData.username);
+      if (existingUsername) {
+        setError('Username already taken');
+        return;
+      }
+
+      // Create user in database with password
+      const newUser = userDB.createUser({
         username: formData.username,
+        fullName: formData.username,
         email: formData.email,
+        password: formData.password, // Store password (in production, hash it)
         followers: 0,
         following: 0,
         bio: 'New user',
-        posts: 0
-      };
+        posts: 0,
+        profileImage: null,
+        isPrivate: false // Default to public account
+      });
       
+      // Login the user (without password in the user object for security)
+      const { password, ...userData } = newUser;
       login(userData);
       navigate('/profile');
     } catch (err) {
