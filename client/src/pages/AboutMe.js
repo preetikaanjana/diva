@@ -18,7 +18,7 @@ const AboutMe = () => {
           </div>
           
           <div className="about-text">
-            <h2>Hi, I'm Devi</h2>
+            <h2>Hi, I'm Diva</h2>
             <p>
               I'm a passionate developer and tech enthusiast who loves creating meaningful 
               applications that make a difference. With expertise in modern web technologies, 

@@ -86,6 +86,113 @@
   line-height: 1.5;
 }
 
+/* Created posts list */
+.blog-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.blog-card {
+  background: #ffe4ef;
+  border: 1px solid #ffc1dd;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Update this class */
+.blog-card {
+  background: #ffe4ef;
+  border: 1px solid #ffc1dd;
+  border-radius: 12px;
+  padding: 16px;
+  
+  /* NEW: Makes the card a flex container */
+  display: flex;
+  flex-direction: column;
+  
+  /* NEW: Forces the card to fill the full height of the grid row */
+  height: 100%; 
+}
+
+/* Update this class */
+.blog-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  /* NEW: This magic property pushes the actions to the very bottom */
+  margin-top: auto; 
+  
+  /* Optional: Adds a little space above the footer so it's not tight to the text */
+  padding-top: 15px; 
+  border-top: 1px solid rgba(255, 105, 180, 0.2); /* Optional: nice separator line */
+}
+
+.blog-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0 12px 0;
+}
+
+.blog-tag {
+  background: #fff;
+  border: 1px solid #ffd0e6;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+
+.create-blog-btn {
+  display: inline-block;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #ff69b4 0%, #e91e63 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.blog-action-btn {
+  background: #ff69b4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.blog-readmore {
+  color: #e91e63;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.blog-comments {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #ffd0e6;
+}
+
+.blog-comments input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ffd0e6;
+  border-radius: 6px;
+}
+
+@media (max-width: 1024px) {
+  .blog-list { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .blog-list { grid-template-columns: 1fr; }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .blog-container {

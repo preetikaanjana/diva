@@ -1,17 +1,188 @@
-.resources {
-  padding: 2rem;
-  text-align: center;
+.resources-page {
+  padding: 0 0 40px 0;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-.resource-list {
+/* Emergency Banner */
+.emergency-banner {
+  background: linear-gradient(90deg, #d32f2f, #c2185b);
+  color: white;
+  padding: 15px 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.emergency-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.emergency-icon {
+  font-size: 24px;
+}
+
+.emergency-text h3 {
+  margin: 0;
+  font-size: 16px;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.emergency-text p {
+  margin: 0;
+  display: inline-block;
+  font-size: 14px;
+}
+
+/* Header */
+.resources-header {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: white;
+  border-bottom: 1px solid #eee;
+}
+
+.resources-header h1 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 2.5rem;
+}
+
+.resources-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Category Tabs */
+.category-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px 20px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  color: #555;
+}
+
+.tab-btn:hover {
+  background-color: #fce4ec;
+  border-color: #f48fb1;
+}
+
+.tab-btn.active {
+  background-color: #e91e63;
+  color: white;
+  border-color: #e91e63;
+  box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+}
+
+/* Resource Grid */
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  padding: 0 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.resource-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: 2rem;
+  align-items: flex-start;
+  border: 1px solid #eee;
 }
 
-.resource-item {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  border-radius: 5px;
-} 
+.resource-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.card-icon {
+  font-size: 32px;
+  margin-bottom: 15px;
+  background: #f8f9fa;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.card-content h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.category-tag {
+  font-size: 11px;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+/* Tag Colors */
+.category-tag.legal { background-color: #e3f2fd; color: #1976d2; }
+.category-tag.education { background-color: #e8f5e9; color: #388e3c; }
+.category-tag.health { background-color: #fce4ec; color: #c2185b; }
+.category-tag.finance { background-color: #fff3e0; color: #f57c00; }
+
+.card-content p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  flex-grow: 1;
+}
+
+.visit-btn {
+  text-decoration: none;
+  color: #e91e63;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.visit-btn:hover {
+  border-bottom-color: #e91e63;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .resource-grid {
+    padding: 0 20px;
+  }
+  
+  .resources-header h1 {
+    font-size: 2rem;
+  }
+  
+  .emergency-content {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

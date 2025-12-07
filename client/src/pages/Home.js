@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import heroBackground from '../images/hero-bg.jpeg';
+import Footer from '../components/Footer';
 
 const galleryImages = [
   '/gallery1.jpeg',
@@ -11,12 +12,24 @@ const galleryImages = [
   '/gallery4.jpeg',
   '/gallery5.jpg',
   '/gallery6.jpg',
+  '/gallery7.webp',
+  '/gallery8.png',
+  // removed gallery9 per request
 ];
 
 function Home() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
+
+  const stories = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('stories');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }, []);
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
@@ -79,27 +92,27 @@ function Home() {
       <div className="main-content-section">
         <div className="container">
           <div className="welcome-header">
-            <h1>Welcome to Devi</h1>
+            <h1>Welcome to Diva</h1>
             <p>Empowering women through knowledge and resources.</p>
           </div>
           
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon">📚</div>
+              <div className="feature-icon"></div>
               <h3>Educational Resources</h3>
               <p>Access a wide range of educational materials and legal support.</p>
               <div className="feature-highlight">Free Access</div>
             </div>
             
             <div className="feature-card">
-              <div className="feature-icon">👥</div>
+              <div className="feature-icon"></div>
               <h3>Community Forum</h3>
               <p>Connect with over 5,000 women and seek mentorship.</p>
               <div className="feature-highlight">5K+ Members</div>
             </div>
             
             <div className="feature-card">
-              <div className="feature-icon">🤖</div>
+              <div className="feature-icon"></div>
               <h3>AI Chatbot</h3>
               <p>Get instant support with our NLP-based chatbot.</p>
               <div className="feature-highlight">24/7 Support</div>
@@ -108,32 +121,54 @@ function Home() {
         </div>
       </div>
       
+      {/* Stories Section */}
+      {isAuthenticated && stories.length > 0 && (
+        <div className="stories-section">
+          <div className="container">
+            <div className="section-header">
+              <h2>Recent Stories</h2>
+              <p>See what's happening in our community</p>
+            </div>
+            <div className="stories-grid">
+              {stories.slice(0, 6).map((story) => (
+                <div key={story.id} className="story-item">
+                  <img src={story.image} alt="Story" />
+                  <div className="story-overlay">
+                    <span>{new Date(story.timestamp).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Why Choose Devi Section */}
       <div className="why-choose-section">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose Devi?</h2>
+            <h2>Why Choose Diva?</h2>
             <p>Discover what makes our platform unique and empowering</p>
           </div>
           
           <div className="benefits-grid">
             <div className="benefit-item">
-              <div className="benefit-icon">💪</div>
+              <div className="benefit-icon"></div>
               <h4>Empowerment Focus</h4>
               <p>Built specifically for women's growth and success</p>
             </div>
             <div className="benefit-item">
-              <div className="benefit-icon">🔒</div>
+              <div className="benefit-icon"></div>
               <h4>Safe Space</h4>
               <p>Private, secure environment for open discussions</p>
             </div>
             <div className="benefit-item">
-              <div className="benefit-icon">🌍</div>
+              <div className="benefit-icon"></div>
               <h4>Global Community</h4>
               <p>Connect with women from around the world</p>
             </div>
             <div className="benefit-item">
-              <div className="benefit-icon">📱</div>
+              <div className="benefit-icon"></div>
               <h4>Always Accessible</h4>
               <p>Available on all devices, anytime, anywhere</p>
             </div>
@@ -151,6 +186,9 @@ function Home() {
           ))}
         </div>
       </div>
+      
+      {/* Footer */}
+      
     </div>
   );
 }

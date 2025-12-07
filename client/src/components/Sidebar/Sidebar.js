@@ -9,13 +9,14 @@ const Sidebar = () => {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { path: '/home', icon: '🏠', label: 'Home' },
-    { path: '/resources', icon: '📚', label: 'Resources' },
-    { path: '/forum', icon: '💬', label: 'Forum' },
-    { path: '/blog', icon: '🔍', label: 'Explore' },
-    { path: '/about', icon: '👤', label: 'About Me' },
-    { path: '/chat', icon: '💝', label: 'Sakhi' },
-    { path: '/contact', icon: '📞', label: 'Contact Us' }
+    { path: '/home', label: 'Home' },
+    { path: '/blog/create', label: 'Create' },
+    { path: '/blog', label: 'Explore' },
+    { path: '/forum', label: 'Forum' },
+    { path: '/resources', label: 'Resources' },
+    { path: '/chat', label: 'Sakhi' },
+    { path: '/contact', label: 'Contact Us' },
+    { path: '/profile', label: 'Profile' },
   ];
 
   const isActive = (path) => {
@@ -33,14 +34,13 @@ const Sidebar = () => {
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <span className="logo-icon">🌟</span>
-          {!isCollapsed && <span className="logo-text">Devi</span>}
+          {!isCollapsed && <span className="logo-text">Diva</span>}
         </div>
         <button 
           className="collapse-btn"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
-          {isCollapsed ? '→' : '←'}
+          {isCollapsed ? '' : ''}
         </button>
       </div>
       
@@ -52,7 +52,6 @@ const Sidebar = () => {
                 to={item.path}
                 className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
               >
-                <span className="nav-icon">{item.icon}</span>
                 {!isCollapsed && <span className="nav-label">{item.label}</span>}
               </Link>
             </li>
