@@ -1,8 +1,19 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userDB, friendRequestDB, storyDB } from '../utils/database';
+import * as api from '../api/divaApi';
 import './Feed.css';
+
+function feedStripHtml(html) {
+  if (!html || typeof html !== 'string') return '';
+  try {
+    const d = document.createElement('div');
+    d.innerHTML = html;
+    return d.textContent || d.innerText || '';
+  } catch {
+    return html.replace(/<[^>]*>/g, '');
+  }
+}
 
 function Feed() {
   const navigate = useNavigate();
@@ -10,173 +21,170 @@ function Feed() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [stories, setStories] = useState([]);
+  const [pendingIncoming, setPendingIncoming] = useState([]);
+  const [sentOutgoing, setSentOutgoing] = useState([]);
+  const [friendIds, setFriendIds] = useState([]);
 
-  const blogs = useMemo(() => {
-    const raw = localStorage.getItem('blogs');
-    try {
-      const parsed = raw ? JSON.parse(raw) : [];
-      return [...parsed].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } catch {
-      return [];
-    }
-  }, []);
+  useEffect(() => {
+    let cancelled = false;
 
-  // Get all users except current user
-  const allUsers = useMemo(() => {
-    if (!user?.id) return [];
-    const users = userDB.getAllUsers();
-    return users.filter(u => u.id !== user.id);
+    (async () => {
+      try {
+        const [users, blogList, storyList] = await Promise.all([
+          api.listUsers(),
+          api.listPublishedBlogs(),
+          api.storiesActive()
+        ]);
+        if (cancelled) return;
+        setAllUsers(Array.isArray(users) ? users : []);
+        const bl = Array.isArray(blogList) ? blogList : [];
+        bl.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setBlogs(bl);
+        setStories(Array.isArray(storyList) ? storyList : []);
+
+        if (user?.id) {
+          const [inc, sent, friends] = await Promise.all([
+            api.followsIncoming(),
+            api.followsSent(),
+            api.followsFriends()
+          ]);
+          if (cancelled) return;
+          setPendingIncoming(Array.isArray(inc) ? inc : []);
+          setSentOutgoing(Array.isArray(sent) ? sent : []);
+          setFriendIds(Array.isArray(friends) ? friends : []);
+        } else {
+          setPendingIncoming([]);
+          setSentOutgoing([]);
+          setFriendIds([]);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id, refreshKey]);
 
-  // Get pending friend requests for current user
-  const pendingRequests = useMemo(() => {
+  const otherUsers = useMemo(() => {
     if (!user?.id) return [];
-    return friendRequestDB.getPendingRequestsForUser(user.id);
-  }, [user?.id, refreshKey]);
+    return allUsers.filter((u) => u.id !== user.id);
+  }, [allUsers, user?.id]);
 
-  // Get users who sent requests (with user details)
   const requestSenders = useMemo(() => {
-    return pendingRequests.map(req => {
-      const sender = userDB.getUserById(req.fromUserId);
-      return sender ? { ...sender, requestId: req.id } : null;
-    }).filter(Boolean);
-  }, [pendingRequests]);
+    return pendingIncoming
+      .map((req) => {
+        const sender = allUsers.find((u) => u.id === req.fromUserId);
+        return sender ? { ...sender, requestId: req.id } : null;
+      })
+      .filter(Boolean);
+  }, [pendingIncoming, allUsers]);
 
-  // Get sent requests
-  const sentRequests = useMemo(() => {
-    if (!user?.id) return [];
-    return friendRequestDB.getRequestsSentByUser(user.id);
-  }, [user?.id, refreshKey]);
-
-  // Get friends list (accepted requests)
-  const friendsList = useMemo(() => {
-    if (!user?.id) return [];
-    return friendRequestDB.getFriends(user.id);
-  }, [user?.id, refreshKey]);
-
-  // Get users with request status (exclude already accepted/friends)
   const usersWithStatus = useMemo(() => {
     if (!user?.id) return [];
-    const sentRequestIds = new Set(sentRequests.map(r => r.toUserId));
-    const receivedRequestIds = new Set(pendingRequests.map(r => r.fromUserId));
-    const friendsSet = new Set(friendsList);
-    
-    return allUsers
-      .filter(u => !friendsSet.has(u.id)) // Exclude already accepted/friends
-      .map(u => {
+    const sentTo = new Set(sentOutgoing.map((r) => r.toUserId));
+    const receivedFrom = new Set(pendingIncoming.map((r) => r.fromUserId));
+    const friendsSet = new Set(friendIds);
+
+    return otherUsers
+      .filter((u) => !friendsSet.has(u.id))
+      .map((u) => {
         let status = 'none';
         let requestId = null;
-        
-        if (sentRequestIds.has(u.id)) {
+        if (sentTo.has(u.id)) {
           status = 'requested';
-          const req = sentRequests.find(r => r.toUserId === u.id);
-          requestId = req?.id;
-        } else if (receivedRequestIds.has(u.id)) {
+          requestId = sentOutgoing.find((r) => r.toUserId === u.id)?.id;
+        } else if (receivedFrom.has(u.id)) {
           status = 'pending';
-          const req = pendingRequests.find(r => r.fromUserId === u.id);
-          requestId = req?.id;
+          requestId = pendingIncoming.find((r) => r.fromUserId === u.id)?.id;
         }
-        
         return { ...u, requestStatus: status, requestId };
       })
-      .slice(0, 10); // Limit to 10 suggestions
-  }, [allUsers, sentRequests, pendingRequests, friendsList, refreshKey]);
+      .slice(0, 10);
+  }, [otherUsers, sentOutgoing, pendingIncoming, friendIds, user?.id]);
 
-  const handleSendRequest = (toUserId) => {
+  const handleSendRequest = async (toUserId) => {
     if (!user?.id) return;
-    const result = friendRequestDB.sendRequest(user.id, toUserId);
-    if (result) {
-      setRefreshKey(prev => prev + 1);
+    try {
+      await api.followSend(toUserId);
+      setRefreshKey((k) => k + 1);
       alert('Friend request sent!');
-    } else {
+    } catch {
       alert('Request already sent or failed to send.');
     }
   };
 
-  const handleAcceptRequest = (requestId) => {
-    const result = friendRequestDB.acceptRequest(requestId);
-    if (result) {
-      setRefreshKey(prev => prev + 1);
+  const handleAcceptRequest = async (requestId) => {
+    try {
+      await api.followAccept(requestId);
+      setRefreshKey((k) => k + 1);
       alert('Friend request accepted!');
+    } catch {
+      alert('Could not accept request.');
     }
   };
 
-  const handleDeclineRequest = (requestId) => {
-    const result = friendRequestDB.declineRequest(requestId);
-    if (result) {
-      setRefreshKey(prev => prev + 1);
+  const handleDeclineRequest = async (requestId) => {
+    try {
+      await api.followDecline(requestId);
+      setRefreshKey((k) => k + 1);
       alert('Friend request declined.');
+    } catch {
+      alert('Could not decline.');
     }
   };
 
-  // Archive expired stories on mount
   useEffect(() => {
-    storyDB.archiveExpiredStories();
-    // Check every hour for expired stories
-    const interval = setInterval(() => {
-      storyDB.archiveExpiredStories();
-      setRefreshKey(prev => prev + 1);
-    }, 60 * 60 * 1000); // Check every hour
-    
+    const interval = setInterval(() => setRefreshKey((k) => k + 1), 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Get current user's stories
   const myStories = useMemo(() => {
     if (!user?.id) return [];
-    try {
-      const allActiveStories = storyDB.getActiveStories();
-      return allActiveStories
-        .filter(story => story.userId === user.id)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    } catch {
-      return [];
-    }
-  }, [user?.id, refreshKey]);
+    return stories
+      .filter((story) => story.userId === user.id)
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+      );
+  }, [stories, user?.id]);
 
-  // Get all active stories from everyone (excluding current user)
   const feedStories = useMemo(() => {
     if (!user?.id) return [];
-    try {
-      // Get active stories (not expired)
-      const allActiveStories = storyDB.getActiveStories();
-      
-      // Get friends list
-      const friends = friendRequestDB.getFriends(user.id);
-      // Include only friends' stories (not own)
-      const relevantUserIds = friends;
-      
-      // Filter stories from friends, sort by timestamp (newest first)
-      const filtered = allActiveStories
-        .filter(story => relevantUserIds.includes(story.userId))
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      
-      // Get user details for each story and group by user
-      const storiesByUser = {};
-      filtered.forEach(story => {
-        const storyUser = userDB.getUserById(story.userId);
-        if (storyUser) {
-          if (!storiesByUser[story.userId]) {
-            storiesByUser[story.userId] = {
-              user: storyUser,
-              stories: []
-            };
-          }
-          storiesByUser[story.userId].stories.push(story);
+    const friends = friendIds;
+    const filtered = stories
+      .filter((story) => friends.includes(story.userId))
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+      );
+
+    const storiesByUser = {};
+    filtered.forEach((story) => {
+      const storyUser = allUsers.find((u) => u.id === story.userId);
+      if (storyUser) {
+        if (!storiesByUser[story.userId]) {
+          storiesByUser[story.userId] = { user: storyUser, stories: [] };
         }
-      });
-      
-      // Convert to array format
-      return Object.values(storiesByUser).map(userStories => ({
-        ...userStories,
-        latestStory: userStories.stories[0] // Most recent story
-      }));
-    } catch {
-      return [];
-    }
-  }, [user?.id, refreshKey]);
+        storiesByUser[story.userId].stories.push(story);
+      }
+    });
+
+    return Object.values(storiesByUser).map((userStories) => ({
+      ...userStories,
+      latestStory: userStories.stories[0]
+    }));
+  }, [stories, friendIds, allUsers, user?.id]);
 
   const handleAddStory = () => {
+    if (!user?.id) {
+      navigate('/login');
+      return;
+    }
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -185,40 +193,23 @@ function Feed() {
       if (file) {
         const reader = new FileReader();
         reader.onload = (readerEvent) => {
-          // Create an image element to load the file
           const img = new Image();
-          img.onload = () => {
-            // Create a canvas to resize the image
+          img.onload = async () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 500; // Limit width to 500px
+            const MAX_WIDTH = 500;
             const scaleSize = MAX_WIDTH / img.width;
-            
-            // Calculate new dimensions
             canvas.width = MAX_WIDTH;
             canvas.height = img.height * scaleSize;
-
-            // Draw image on canvas
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // Compress to JPEG at 60% quality
-            // This converts a 3MB image to ~50KB
             const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-
-            const storyData = {
-              id: Date.now().toString(),
-              image: compressedDataUrl, // Saving the compressed version
-              timestamp: new Date().toISOString(),
-              userId: user.id
-            };
-            
             try {
-              storyDB.createStory(storyData);
-              setRefreshKey(prev => prev + 1);
+              await api.createStory(compressedDataUrl);
+              setRefreshKey((k) => k + 1);
               alert('Story uploaded! It will be visible for 24 hours.');
             } catch (error) {
               console.error(error);
-              alert('Storage is full! Please clear data or delete old stories.');
+              alert(error.message || 'Could not upload story.');
             }
           };
           img.src = readerEvent.target.result;
@@ -273,15 +264,15 @@ function Feed() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase();
-    const allUsersList = userDB.getAllUsers();
-    return allUsersList
-      .filter(u => 
-        u.id !== user?.id && 
-        (u.username?.toLowerCase().includes(query) || 
-         u.fullName?.toLowerCase().includes(query))
+    return allUsers
+      .filter(
+        (u) =>
+          u.id !== user?.id &&
+          (u.username?.toLowerCase().includes(query) ||
+            u.fullName?.toLowerCase().includes(query))
       )
       .slice(0, 10);
-  }, [searchQuery, user?.id]);
+  }, [searchQuery, user?.id, allUsers]);
 
   const handleUsernameClick = (userId) => {
     if (userId === user?.id) {
@@ -537,8 +528,14 @@ function Feed() {
           {blogs.length === 0 ? (
             <div className="empty-feed">No recent posts. Create your first blog!</div>
           ) : (
-            blogs.map((post) => (
+            blogs.map((post) => {
+              const snippet = feedStripHtml(post.content || '');
+              return (
               <div className="feed-card" key={post.id}>
+                {post.coverImage && (
+                  <img src={post.coverImage} alt="" className="feed-card-cover" />
+                )}
+                <div className="feed-card-body">
                 <div className="feed-card-header">
                   <div className="avatar">{(post.author || 'U').charAt(0).toUpperCase()}</div>
                   <div className="meta">
@@ -546,7 +543,9 @@ function Feed() {
                       className="author" 
                       style={{ cursor: 'pointer', fontWeight: '600' }}
                       onClick={() => {
-                        const postUser = userDB.getAllUsers().find(u => u.username === post.author || u.id === post.userId);
+                        const postUser = allUsers.find(
+                          (u) => u.username === post.author || u.id === post.userId
+                        );
                         if (postUser) {
                           handleUsernameClick(postUser.id);
                         }
@@ -559,19 +558,22 @@ function Feed() {
                 </div>
                 <h3 className="feed-title">{post.title}</h3>
                 <p className="feed-content">
-                  {post.content.length > 200 ? (
+                  {snippet.length > 200 ? (
                     <>
-                      {post.content.slice(0, 200)}… <button className="blog-readmore" onClick={() => navigate(`/blog/${post.id}`)}>Read more</button>
+                      {snippet.slice(0, 200)}… <button type="button" className="blog-readmore" onClick={() => navigate(`/blog/${post.id}`)}>Read more</button>
                     </>
-                  ) : post.content}
+                  ) : (
+                    snippet
+                  )}
                 </p>
                 <div className="feed-tags">
                   {post.tags?.map((t) => (
                     <span className="tag" key={t}>{t}</span>
                   ))}
                 </div>
+                </div>
               </div>
-            ))
+            )})
           )}
         </div>
       </div>

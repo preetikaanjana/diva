@@ -1,156 +1,205 @@
-# Diva - React Social Platform
+# Diva — React client
 
-A complete React application with authentication, profile management, and social features built with modern web technologies.
-
-## Features
-
-### 🔐 Authentication System
-- **Login Page**: Clean, responsive login form with email/password
-- **Signup Page**: User registration with validation
-- **Protected Routes**: Secure access to user-specific content
-- **Local Storage**: Persistent authentication state
-
-### 👤 Profile Management
-- **Profile Page**: Instagram-style profile layout
-- **User Stats**: Posts, followers, following counts
-- **Profile Tabs**: Grid, bookmarks, and tagged content views
-- **Blog Sharing**: "Share a Blog" functionality instead of photos
-
-### 🧭 Navigation
-- **Responsive Sidebar**: Collapsible left navigation
-- **Navigation Links**: Home, Forum, Blog, About Me, Resources, Chat, Contact
-- **User Info**: Display current user information
-- **Logout Functionality**: Secure logout with context management
-
-### 📝 Blog System
-- **Blog Page**: Grid layout with blog cards
-- **Categories**: Filter blogs by technology categories
-- **Sorting**: Latest, oldest, and popular sorting options
-- **Responsive Design**: Mobile-friendly blog grid
-
-### 🎨 Design & UI
-- **Color Palette**: Consistent with existing website design
-- **Modern UI**: Clean, minimalist interface
-- **Responsive Design**: Works on all device sizes
-- **Smooth Animations**: Hover effects and transitions
-
-## Technology Stack
-
-- **React 18**: Modern React with hooks
-- **React Router**: Client-side routing
-- **Context API**: State management for authentication
-- **CSS3**: Custom styling with responsive design
-- **Local Storage**: Client-side data persistence
-
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── Auth/
-│   │   ├── Login.js
-│   │   ├── Signup.js
-│   │   └── Auth.css
-│   ├── Sidebar/
-│   │   ├── Sidebar.js
-│   │   └── Sidebar.css
-│   ├── Navbar.js
-│   └── Footer.js
-├── pages/
-│   ├── Profile.js
-│   ├── Profile.css
-│   ├── Blog.js
-│   ├── Blog.css
-│   ├── AboutMe.js
-│   ├── AboutMe.css
-│   └── ... (other existing pages)
-├── context/
-│   └── AuthContext.js
-├── App.js
-└── App.css
-```
-
-## Getting Started
-
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-
-### Installation
-
-1. **Navigate to the client directory:**
-   ```bash
-   cd client
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm start
-   ```
-
-4. **Open your browser:**
-   Navigate to `http://localhost:3000`
-
-## Usage
-
-### Authentication Flow
-1. **First Visit**: Users see public pages (Home, Blog, About, etc.)
-2. **Login/Signup**: Users can create accounts or sign in
-3. **Protected Access**: After authentication, users see the sidebar and can access their profile
-4. **Profile Management**: Users can view their profile, stats, and manage content
-
-### Navigation
-- **Sidebar**: Left-side navigation with collapsible design
-- **Profile Access**: Click on profile or use `/profile` route
-- **Logout**: Use the logout button in the sidebar
-
-### Blog Features
-- **View Blogs**: Browse all available blog posts
-- **Filtering**: Sort by category and date
-- **Create Blogs**: "Create New Blog" button (functionality to be implemented)
-
-## Color Palette
-
-The application uses a consistent color scheme:
-- **Primary**: `#ff69b4` (Pink)
-- **Secondary**: `#e91e63` (Darker Pink)
-- **Background**: `#fff`, `#f5f5f5` (White, Light Gray)
-- **Text**: `#333`, `#666` (Dark Gray, Medium Gray)
-- **Accents**: `#fff0f5`, `#ffe4e1` (Light Pink variations)
-
-## Responsive Design
-
-- **Desktop**: Full sidebar with expanded navigation
-- **Tablet**: Responsive sidebar with mobile considerations
-- **Mobile**: Collapsible sidebar with touch-friendly interactions
-
-## Future Enhancements
-
-- [ ] Real backend API integration
-- [ ] Blog creation and editing
-- [ ] User search and following
-- [ ] Real-time chat functionality
-- [ ] Image upload and management
-- [ ] Advanced profile customization
-- [ ] Notification system
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is part of the Diva platform and follows the same licensing terms.
+Social platform UI: auth, profiles, blogs (Explore), forum, feed, stories, resources, and more. The **live data** (users, posts, forum, follows, stories) comes from the **Node API** in the parent repo’s `server/` folder, not from browser-only storage.
 
 ---
 
-**Note**: This is a frontend-only implementation. For production use, integrate with a backend API for user authentication, data persistence, and real-time features.
+## What you need installed
+
+- **Node.js 18+** ([nodejs.org](https://nodejs.org))
+- **npm** (comes with Node)
+
+---
+
+## Repository layout
+
+```
+diva/                    ← repository root (parent of this folder)
+├── client/              ← this React app (you are here)
+│   ├── src/
+│   │   ├── api/         ← divaApi.js — all HTTP calls to the backend
+│   │   ├── components/
+│   │   ├── context/     ← AuthContext (user + JWT)
+│   │   └── pages/
+│   ├── public/
+│   ├── .env.development
+│   ├── .env.production
+│   └── package.json     ← "proxy" → http://localhost:4000 for /api in dev
+├── server/              ← Express API + MongoDB
+└── DEPLOY.md            ← how to deploy the full stack
+```
+
+---
+
+## Environment variables (React)
+
+Create or edit files in **`client/`** (must start with `REACT_APP_` to be visible in the app). **Restart `npm start` after changes.**
+
+| File | Purpose |
+|------|--------|
+| `.env.development` | Used when you run `npm start` |
+| `.env.production` | Used when you run `npm run build` |
+
+| Variable | When to set | What it does |
+|----------|-------------|--------------|
+| `REACT_APP_API_URL` | **Usually leave unset** | If **unset**, the app calls **`/api`** on the **same origin** (correct for production when Node serves both the build and the API). If set, requests go to that base URL (e.g. split deploy: `https://api.example.com`). |
+
+**Local development (recommended):** leave `REACT_APP_API_URL` commented out in `.env.development`. The **`proxy`** in `package.json` forwards `/api` to `http://localhost:4000` while the UI runs on port **3000**.
+
+---
+
+## Running locally
+
+### 1. Install API + client dependencies
+
+From the **repository root** (`diva/`):
+
+```bash
+cd server && npm install && cd ..
+cd client && npm install && cd ..
+```
+
+### 2. Start API + React together (easiest)
+
+Still from **repository root** (install root deps once: `npm install` for `concurrently`):
+
+```bash
+npm run dev
+```
+
+- **App UI:** http://localhost:3000  
+- **API:** http://localhost:4000  
+- The browser talks to **`/api`**, which the dev server proxies to port 4000.
+
+### 3. Or run client and server in two terminals
+
+**Terminal A — API:**
+
+```bash
+cd server
+npm install
+node index.js
+```
+
+**Terminal B — React:**
+
+```bash
+cd client
+npm install
+npm start
+```
+
+### 4. Production-style run (single server, like deploy)
+
+Build the client, then start Node in production mode (from **repo root**):
+
+```bash
+cd client && npm run build && cd ..
+```
+
+**PowerShell (Windows):**
+
+```powershell
+$bytes = New-Object byte[] 48
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+$env:NODE_ENV = "production"
+node server/index.js
+```
+
+Open **http://localhost:4000** (or the port in `$env:PORT`).  
+Do **not** copy placeholder text like `<paste 32+ random chars>` — use a real secret **≥ 32 characters**.
+
+---
+
+## Authentication
+
+- After login/signup, a **JWT** is stored in **`localStorage`** under **`diva_token`**.
+- User profile cache: **`user`** in `localStorage` (updated when the app refreshes session from `/api/auth/me`).
+- Protected routes use `AuthContext`; if the token is invalid, the app clears it on `/auth/me` failure.
+
+---
+
+## API client
+
+All backend calls are in **`src/api/divaApi.js`** (`fetch` + JSON). Typical routes:
+
+- `/api/auth/register`, `/api/auth/login`, `/api/auth/me`
+- `/api/blogs`, `/api/blogs/drafts`, `/api/blogs/:id`, like/save endpoints
+- `/api/questions`, replies, `/api/follows/*`, `/api/stories/*`
+- `/api/users`, `/api/users/:id`, followers/following, etc.
+
+Health check: **`GET /api/health`**.
+
+---
+
+## Build for production
+
+```bash
+cd client
+npm run build
+```
+
+Output: **`client/build/`**. In production, the **server** in `server/index.js` can serve this folder and handle **`/api`** on the same host (see **`DEPLOY.md`** at repo root).
+
+---
+
+## Deploying the website
+
+The **full stack** (React + API) is described in the parent folder’s **`DEPLOY.md`** (Render, Heroku, env vars, `MONGODB_URI`, `JWT_SECRET`).
+
+**Short checklist:**
+
+1. Set **`NODE_ENV=production`** and a strong **`JWT_SECRET`** (≥ 32 chars) on the host.
+2. Build: `npm install --prefix server && cd client && npm ci && npm run build`
+3. Start: `NODE_ENV=production node server/index.js` (platform sets **`PORT`**).
+4. Do **not** set `REACT_APP_API_URL` if the API is on the **same domain** as the site.
+
+HTTPS is provided by your host (e.g. Render), not by this repo’s Node process.
+
+---
+
+## Features (current)
+
+- **Auth:** Sign up, sign in, JWT session, profile edit, password change, privacy toggle  
+- **Explore:** Published blogs, likes, saves (server-backed)  
+- **Create / drafts:** Blog editor, drafts list  
+- **Forum:** Questions and replies  
+- **Feed:** Stories, suggestions, friend requests (server-backed)  
+- **Profile / user profiles:** Posts, followers, following, stories  
+- **Resources, Chat, Contact, Home, Footer** links as in the app  
+
+---
+
+## Tech stack (client)
+
+- React 18, React Router 6  
+- Context API for auth  
+- **`src/api/divaApi.js`** for backend communication  
+- CSS (page/component styles)  
+
+---
+
+## Troubleshooting
+
+| Issue | What to check |
+|-------|----------------|
+| “Could not load posts” / API errors | Is **`server`** running on port **4000**? Is **`npm run dev`** or `node server/index.js` started? |
+| CORS errors in dev | Use **`npm start`** with **`proxy`** and **no** wrong `REACT_APP_API_URL`, or point URL to the real API origin. |
+| Login works locally but not after deploy | **`JWT_SECRET`** must be set in production and **stable** (changing it invalidates all tokens). |
+| Data / connection errors | Set **`MONGODB_URI`** on the server; in Atlas check **Network Access** and the database user password (see **`DEPLOY.md`**). |
+
+---
+
+## Color palette (UI)
+
+- **Primary:** `#ff69b4`  
+- **Secondary / accent:** `#e91e63`, `#c2185b`  
+- **Backgrounds:** `#fff`, `#f5f5f5`, light pinks for panels  
+- **Text:** `#333`, `#666`  
+
+---
+
+## License
+
+Part of the Diva project; same terms as the parent repository.

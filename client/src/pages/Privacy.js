@@ -1,41 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userDB } from '../utils/database';
+import * as api from '../api/divaApi';
 import './CreateBlog.css';
 
 const Privacy = () => {
   const navigate = useNavigate();
-  const { user, login } = useAuth();
+  const { user, updateUser } = useAuth();
   const [isPrivate, setIsPrivate] = useState(user?.isPrivate || false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user?.id) {
-      const dbUser = userDB.getUserById(user.id);
-      if (dbUser) {
-        setIsPrivate(dbUser.isPrivate || false);
-      }
+    if (user) {
+      setIsPrivate(user.isPrivate || false);
     }
-  }, [user?.id]);
+  }, [user?.id, user?.isPrivate]);
 
   const handleTogglePrivacy = async () => {
     if (!user?.id) return;
     setSaving(true);
     
     try {
-      const updatedUser = userDB.updateUser(user.id, { isPrivate: !isPrivate });
-      if (updatedUser) {
-        const { password, ...userData } = updatedUser;
-        if (login) {
-          login(userData);
-        }
-        setIsPrivate(!isPrivate);
-        alert(`Account set to ${!isPrivate ? 'Private' : 'Public'}`);
-      }
+      const updatedUser = await api.updatePrivacy(!isPrivate);
+      updateUser(updatedUser);
+      setIsPrivate(!isPrivate);
+      alert(`Account set to ${!isPrivate ? 'Private' : 'Public'}`);
     } catch (error) {
       console.error('Error updating privacy:', error);
-      alert('Failed to update privacy settings');
+      alert(error.message || 'Failed to update privacy settings');
     } finally {
       setSaving(false);
     }

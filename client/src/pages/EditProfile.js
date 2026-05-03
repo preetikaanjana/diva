@@ -1,20 +1,22 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userDB } from '../utils/database';
+import * as api from '../api/divaApi';
 import './CreateBlog.css'; 
 
 function EditProfile() {
   // We need 'login' (or a specific updateUser function) to update the global state
-  const { user, login } = useAuth(); 
+  const { user, updateUser } = useAuth(); 
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
   // State for profile fields
-  const [username, setUsername] = useState(user?.username || 'preetikaanjana');
-  const [fullName, setFullName] = useState(user?.fullName || 'Preetika Anjana');
-  const [email, setEmail] = useState(user?.email || 'preetika@example.com');
-  const [bio, setBio] = useState(user?.bio || 'eww People');
+  const [username, setUsername] = useState(user?.username || '');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [city, setCity] = useState(user?.city || '');
   
   // State for the profile image (preview)
   const [profileImage, setProfileImage] = useState(user?.profileImage || null);
@@ -36,69 +38,28 @@ function EditProfile() {
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     
     try {
-        // 1. Update user in database
-        const dbUser = userDB.getUserById(user.id);
-        if (!dbUser) {
-          console.error("User not found in database");
-          setSubmitting(false);
-          return;
-        }
-
-        // Check if email is being changed and if it's already taken
-        if (email !== user.email) {
-          const existingUser = userDB.getUserByEmail(email);
-          if (existingUser && existingUser.id !== user.id) {
-            alert('Email already in use by another account');
-            setSubmitting(false);
-            return;
-          }
-        }
-
-        // Check if username is being changed and if it's already taken
-        if (username !== user.username) {
-          const existingUsername = userDB.getUserByUsername(username);
-          if (existingUsername && existingUsername.id !== user.id) {
-            alert('Username already taken');
-            setSubmitting(false);
-            return;
-          }
-        }
-
-        // Update user in database
-        const updatedUser = userDB.updateUser(user.id, {
+        const updatedUser = await api.updateMe({
           username,
           fullName,
-          email,
+          email: email.trim().toLowerCase(),
           bio,
+          phone,
+          city,
           profileImage
         });
-
-        if (!updatedUser) {
-          console.error("Failed to update user");
-          setSubmitting(false);
-          return;
-        }
-
-        // 2. Update the Global Context (without password)
-        const { password, ...userData } = updatedUser;
-        if (login) {
-            login(userData); 
-        }
-
-        // 3. Navigate back to profile
+        updateUser(updatedUser);
         setTimeout(() => {
             setSubmitting(false);
             navigate('/profile');
-        }, 500);
-        
+        }, 400);
     } catch (error) {
         console.error("Failed to save profile", error);
-        alert("Failed to save profile. Please try again.");
+        alert(error.message || 'Failed to save profile. Please try again.');
         setSubmitting(false);
     }
   };
@@ -196,6 +157,27 @@ function EditProfile() {
             type="email"
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
+          />
+        </div>
+
+        <div>
+          <label className="field-label">Phone</label>
+          <input
+            className="text-input"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Optional"
+          />
+        </div>
+
+        <div>
+          <label className="field-label">City / location</label>
+          <input
+            className="text-input"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Optional"
           />
         </div>
 

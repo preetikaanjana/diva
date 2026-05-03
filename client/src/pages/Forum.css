@@ -176,6 +176,11 @@
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .view-btn:hover {

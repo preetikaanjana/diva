@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { blogDB } from '../utils/database';
+import * as api from '../api/divaApi';
 import './CreateBlog.css';
+import '../styles/FormsDiva.css';
 
 function CreateBlog() {
   const navigate = useNavigate();
@@ -70,52 +71,66 @@ function CreateBlog() {
 
   const handlePublish = (e, isDraft = false) => {
     e.preventDefault();
-    if (!title.trim() && !isDraft) return; 
+    if (!title.trim() && !isDraft) return;
     setSubmitting(true);
 
-    // Create the blog object
     const blogPost = {
-      // If editing, keep the OLD ID, otherwise make a new one
       id: existingBlog ? existingBlog.id : Date.now().toString(),
-      title: title,
-      content: content,
-      tags: tags,
-      coverImage: coverImage,
-      // If editing, keep original date, otherwise new date
+      title,
+      content,
+      tags,
+      coverImage,
       createdAt: existingBlog ? existingBlog.createdAt : new Date().toISOString(),
       author: user?.username || 'Anonymous',
       userId: user?.id,
       likes: existingBlog ? existingBlog.likes : 0,
-      isDraft: isDraft
+      isDraft
     };
 
-    try {
-      if (existingBlog) {
-        // UPDATE MODE: Update blog in database
-        blogDB.updateBlog(existingBlog.id, blogPost);
-        console.log('Blog updated successfully');
-      } else {
-        // CREATE MODE: Create new blog in database
-        blogDB.createBlog(blogPost);
-        console.log('Blog saved successfully');
-      }
-      
-    } catch (error) {
-      console.error('Error saving blog:', error);
-      alert('Failed to save. Image might be too large.');
-    }
+    const savePromise = existingBlog
+      ? api.updateBlog(existingBlog.id, {
+          title: blogPost.title,
+          content: blogPost.content,
+          tags: blogPost.tags,
+          coverImage: blogPost.coverImage,
+          isDraft: blogPost.isDraft
+        })
+      : api.createBlog({
+          id: blogPost.id,
+          title: blogPost.title,
+          content: blogPost.content,
+          tags: blogPost.tags,
+          coverImage: blogPost.coverImage,
+          isDraft: blogPost.isDraft,
+          createdAt: blogPost.createdAt
+        });
 
-    setTimeout(() => {
+    savePromise
+      .then(() => {
         setSubmitting(false);
-        navigate(isDraft ? '/profile' : '/blog'); 
-    }, 1000);
+        navigate(isDraft ? '/blog/drafts' : '/blog');
+      })
+      .catch((error) => {
+        console.error('Error saving blog:', error);
+        alert(error.message || 'Failed to save. Image might be too large.');
+        setSubmitting(false);
+      });
   };
 
   return (
-    <div className="create-blog-wrapper">
-      <h1 className="create-blog-title">{existingBlog ? 'Edit Blog' : 'Create Blog'}</h1>
-      
-      <form className="create-blog-card-wide" onSubmit={(e) => e.preventDefault()}>
+    <div className="create-blog-wrapper diva-form-page">
+      <div className="create-blog-heading-row">
+        <h1 className="create-blog-title">{existingBlog ? 'Edit Blog' : 'Create Blog'}</h1>
+        <button
+          type="button"
+          className="view-drafts-link-btn"
+          onClick={() => navigate('/blog/drafts')}
+        >
+          View saved drafts
+        </button>
+      </div>
+
+      <form className="diva-form-panel diva-form-panel--blog" onSubmit={(e) => e.preventDefault()}>
         
         {/* Title */}
         <div>

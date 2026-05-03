@@ -1,0 +1,120 @@
+/* Shared form panel — matches Contact Us look; use for Ask Question & Create Blog */
+.diva-form-page {
+  margin-top: 24px;
+  padding: 0 20px 40px;
+  text-align: left;
+}
+
+.diva-form-page h1 {
+  text-align: center;
+  color: #e91e63;
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+}
+
+.diva-form-page .diva-form-subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.diva-form-panel {
+  background-color: #fce4ec;
+  border: 1px solid #e91e63;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.diva-form-panel .field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #ad1457;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.diva-form-panel .text-input,
+.diva-form-panel select,
+.diva-form-panel textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: #fff5f8;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.diva-form-panel textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.diva-form-panel .rich-text-editor {
+  margin-bottom: 15px;
+  background: #fff5f8;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.diva-form-panel .rich-text-content {
+  min-height: 180px;
+}
+
+.diva-form-panel .image-upload-box,
+.diva-form-panel .image-preview-container {
+  margin-bottom: 15px;
+}
+
+.diva-form-panel .tag-input-wrapper {
+  margin-bottom: 15px;
+  background: #fff5f8;
+}
+
+.diva-form-panel .button-group-wide {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+/* Create blog: wider card, white body (still same family as Contact / Ask) */
+.diva-form-panel--blog {
+  max-width: 850px;
+  min-height: 560px;
+  background: #ffffff;
+  border-width: 2px;
+  padding: 28px 32px;
+  gap: 22px;
+  box-shadow: 0 8px 20px rgba(233, 30, 99, 0.1);
+}
+
+.diva-form-panel--blog > div {
+  width: 100%;
+}
+
+/* Shorter Ask Question panel */
+.diva-form-panel--compact {
+  min-height: 320px;
+  padding: 16px 18px;
+}
+
+.diva-form-panel--compact textarea {
+  min-height: 88px;
+  margin-bottom: 12px;
+}
+
+.diva-form-panel--compact .text-input {
+  margin-bottom: 12px;
+}

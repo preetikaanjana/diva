@@ -1,63 +1,57 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { questionDB } from '../utils/database';
-import './CreateBlog.css'; // Importing the shared CSS file
+import * as api from '../api/divaApi';
+import '../styles/FormsDiva.css';
+import './CreateBlog.css';
 
 function AskQuestion() {
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('General'); 
+  const [category, setCategory] = useState('General');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim() || !details.trim()) return;
-    
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     setSubmitting(true);
-
-    const q = {
-      id: `${Date.now()}`,
-      title: title.trim(),
-      category: category, 
-      details: details.trim(),
-      author: user?.username || 'User',
-      userId: user?.id, // Save user ID for filtering
-      createdAt: new Date().toISOString(),
-      replies: [],
-      likes: 0
-    };
-
-    // Save to database
-    questionDB.createQuestion(q);
-    
-    // Also save to old localStorage for backward compatibility
-    const raw = localStorage.getItem('questions');
-    const list = raw ? JSON.parse(raw) : [];
-    localStorage.setItem('questions', JSON.stringify([q, ...list]));
-    
-    setSubmitting(false);
-    navigate('/forum');
+    try {
+      await api.createQuestion({
+        title: title.trim(),
+        category,
+        details: details.trim()
+      });
+      navigate('/forum');
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to post question');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="create-blog-wrapper">
-      <h1 className="create-blog-title">Ask a Question</h1>
-      
-      {/* UPDATE 1: Use the new WIDE class */}
-      <form className="create-blog-card-wide" onSubmit={handleSubmit}>
-        
-        {/* Category Dropdown */}
+    <div className="create-blog-wrapper diva-form-page">
+      <h1>Ask a Question</h1>
+
+      <form className="diva-form-panel diva-form-panel--compact" onSubmit={handleSubmit}>
         <div>
-          <label className="field-label">Category</label>
-          <select 
-            className="text-input" 
-            value={category} 
+          <label className="field-label" htmlFor="aq-category">
+            Category
+          </label>
+          <select
+            id="aq-category"
+            className="text-input"
+            value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={{ width: '100%', cursor: 'pointer' }}
           >
             <option value="General">General</option>
             <option value="Legal Rights">Legal Rights</option>
@@ -67,61 +61,49 @@ function AskQuestion() {
           </select>
         </div>
 
-        {/* Title Input */}
         <div>
-          <label className="field-label">Title</label>
-          <input 
-            className="text-input" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            placeholder="e.g., How do I file an FIR?"
-            required 
+          <label className="field-label" htmlFor="aq-title">
+            Title
+          </label>
+          <input
+            id="aq-title"
+            className="text-input"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. How do I file an FIR?"
+            required
           />
         </div>
 
-        {/* Details Input */}
         <div>
-          <label className="field-label">Details</label>
-          <textarea 
-            className="content-input" 
-            rows={6} 
-            value={details} 
-            onChange={(e) => setDetails(e.target.value)} 
+          <label className="field-label" htmlFor="aq-details">
+            Details
+          </label>
+          <textarea
+            id="aq-details"
+            className="text-input"
+            rows={5}
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
             placeholder="Describe your situation..."
-            required 
-            // Inline style to ensure textarea matches the new CSS inputs
-            style={{
-                width: '100%',
-                padding: '14px',
-                border: '1px solid #ff80ab',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontFamily: 'inherit'
-            }}
+            required
           />
         </div>
 
-        {/* Buttons */}
-        {/* UPDATE 2: Use the new WIDE button group */}
-        <div className="button-group-wide">
-          <button 
-            type="button" 
-            className="save-draft-btn" 
+        <div className="button-group-wide" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="save-draft-btn"
             onClick={() => navigate('/forum')}
             disabled={submitting}
           >
             Cancel
           </button>
-          
-          <button 
-            className="publish-btn" 
-            type="submit" 
-            disabled={submitting}
-          >
-            {submitting ? 'Posting...' : 'Post Question'}
+          <button className="publish-btn" type="submit" disabled={submitting}>
+            {submitting ? 'Posting…' : 'Post question'}
           </button>
         </div>
-
       </form>
     </div>
   );

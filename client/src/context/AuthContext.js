@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import * as api from '../api/divaApi';
 
 const AuthContext = createContext();
 
@@ -16,48 +17,50 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication status on app load
-    const checkAuth = () => {
-      const authStatus = localStorage.getItem('isAuthenticated');
-      const userData = localStorage.getItem('user');
-      
-      if (authStatus === 'true' && userData) {
-        try {
-          const user = JSON.parse(userData);
-          // Check if user exists in database, if not, they might be an old user
-          // For now, just set the user (migration can happen on next login)
-          setIsAuthenticated(true);
-          setUser(user);
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          logout();
-        }
-      }
+    const token = api.getToken();
+    if (!token) {
       setLoading(false);
-    };
+      return;
+    }
 
-    checkAuth();
+    api
+      .authMe()
+      .then((u) => {
+        setUser(u);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(u));
+      })
+      .catch(() => {
+        api.setToken(null);
+        localStorage.removeItem('user');
+        setUser(null);
+        setIsAuthenticated(false);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = (userData) => {
-    localStorage.setItem('isAuthenticated', 'true');
+  const login = useCallback((userData, token) => {
+    if (token) api.setToken(token);
     localStorage.setItem('user', JSON.stringify(userData));
     setIsAuthenticated(true);
     setUser(userData);
-  };
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem('isAuthenticated');
+  const logout = useCallback(() => {
+    api.setToken(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
     setIsAuthenticated(false);
     setUser(null);
-  };
+  }, []);
 
-  const updateUser = (userData) => {
-    const updatedUser = { ...user, ...userData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
-  };
+  const updateUser = useCallback((userData) => {
+    setUser((prev) => {
+      const updatedUser = { ...prev, ...userData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  }, []);
 
   const value = {
     isAuthenticated,
@@ -68,9 +71,5 @@ export const AuthProvider = ({ children }) => {
     updateUser
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

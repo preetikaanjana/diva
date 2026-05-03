@@ -15,12 +15,40 @@
   align-items: center; /* Keeps everything centered */
 }
 
+.create-blog-heading-row {
+  width: 100%;
+  max-width: 850px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .create-blog-title {
   font-size: 36px;
   font-weight: 800;
   color: #e91e63; /* Dark Pink Title */
-  margin-bottom: 30px;
-  text-align: center;
+  margin: 0;
+  text-align: left;
+  flex: 1;
+  min-width: 200px;
+}
+
+.view-drafts-link-btn {
+  background: transparent;
+  border: 2px solid #e91e63;
+  color: #e91e63;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.view-drafts-link-btn:hover {
+  background: #fff0f6;
 }
 
 /* =========================================

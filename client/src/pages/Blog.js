@@ -1,95 +1,84 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import * as api from '../api/divaApi';
 import './Blog.css';
+
+function stripHtml(html) {
+  if (!html || typeof html !== 'string') return '';
+  try {
+    const d = document.createElement('div');
+    d.innerHTML = html;
+    return d.textContent || d.innerText || '';
+  } catch {
+    return html.replace(/<[^>]*>/g, '');
+  }
+}
 
 // ==========================================
 // 1. Child Component: BlogCard
 // ==========================================
 function BlogCard({ post }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
-
-  // --- LAZY INITIALIZATION (Fixes the refresh issue) ---
-  // Checks localStorage immediately before the component paints
-  const [isLiked, setIsLiked] = useState(() => {
-    try {
-      const userLikedPosts = JSON.parse(localStorage.getItem('userLikedPosts') || '[]');
-      return userLikedPosts.some(id => String(id) === String(post.id));
-    } catch (e) {
-      return false;
-    }
-  });
-
-  // Initialize likes from the post prop
+  const [isLiked, setIsLiked] = useState(!!post.likedByMe);
   const [likes, setLikes] = useState(post.likes || 0);
-  
-  // Check if saved
-  const [isSaved, setIsSaved] = useState(() => {
-    try {
-      const savedBlogs = JSON.parse(localStorage.getItem('savedBlogs') || '[]');
-      return savedBlogs.some(blog => String(blog.id) === String(post.id));
-    } catch (e) {
-      return false;
-    }
-  });
+  const [isSaved, setIsSaved] = useState(!!post.savedByMe);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setIsLiked(!!post.likedByMe);
+    setLikes(post.likes || 0);
+    setIsSaved(!!post.savedByMe);
+  }, [post.id, post.likedByMe, post.likes, post.savedByMe]);
 
   const toggle = () => setExpanded((v) => !v);
 
-  const like = () => {
-    // Stop if already liked
-    if (isLiked) return; 
-
-    const newLikes = likes + 1;
-    setLikes(newLikes);
-    setIsLiked(true);
-    
+  const like = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (busy) return;
+    setBusy(true);
     try {
-      // 1. Update the Main Blog List (so the count persists for everyone)
-      const allBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
-      const updatedBlogs = allBlogs.map(b => {
-        if (String(b.id) === String(post.id)) {
-          return { ...b, likes: newLikes };
-        }
-        return b;
-      });
-      localStorage.setItem('blogs', JSON.stringify(updatedBlogs));
-
-      // 2. Mark this USER as having liked this post (so they can't like again)
-      const userLikedPosts = JSON.parse(localStorage.getItem('userLikedPosts') || '[]');
-      
-      if (!userLikedPosts.some(id => String(id) === String(post.id))) {
-        userLikedPosts.push(post.id);
-        localStorage.setItem('userLikedPosts', JSON.stringify(userLikedPosts));
-      }
-
-    } catch (error) {
-      console.error('Error saving liked blog:', error);
+      const res = await api.toggleBlogLike(post.id);
+      setLikes(res.likes);
+      setIsLiked(res.likedByMe);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBusy(false);
     }
   };
 
-  const saveBlog = () => {
+  const saveBlog = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (busy) return;
+    setBusy(true);
     try {
-      const savedBlogs = JSON.parse(localStorage.getItem('savedBlogs') || '[]');
-      if (isSaved) {
-        // Remove from saved
-        const updatedSaved = savedBlogs.filter(blog => String(blog.id) !== String(post.id));
-        localStorage.setItem('savedBlogs', JSON.stringify(updatedSaved));
-        setIsSaved(false);
-      } else {
-        // Add to saved
-        savedBlogs.push({ ...post, likes }); // Save current state
-        localStorage.setItem('savedBlogs', JSON.stringify(savedBlogs));
-        setIsSaved(true);
-      }
-    } catch (error) {
-      console.error('Error saving blog:', error);
+      const { saved } = await api.toggleSavedBlog(post.id);
+      setIsSaved(saved);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBusy(false);
     }
   };
 
-  const display = expanded ? post.content : (post.content.length > 180 ? post.content.slice(0, 180) + '…' : post.content);
+  const plain = stripHtml(post.content || '');
+  const display = expanded ? plain : (plain.length > 180 ? plain.slice(0, 180) + '…' : plain);
 
   return (
     <div className="blog-card">
+      {post.coverImage && (
+        <img src={post.coverImage} alt="" className="blog-card-cover" />
+      )}
+      <div className="blog-card-content">
       <h3>{post.title}</h3>
       <div className="blog-tags">
         {post.tags?.map((t) => (
@@ -102,13 +91,13 @@ function BlogCard({ post }) {
         <div style={{ display:'flex', gap:8 }}>
           
           {/* Button disabled if isLiked is true */}
-          <button 
-            className={`blog-action-btn ${isLiked ? 'liked' : ''}`} 
+          <button
+            className={`blog-action-btn ${isLiked ? 'liked' : ''}`}
             onClick={like}
-            disabled={isLiked} 
-            style={{ 
-              cursor: isLiked ? 'not-allowed' : 'pointer', 
-              opacity: isLiked ? 1 : 0.8 
+            disabled={busy}
+            style={{
+              cursor: busy ? 'wait' : 'pointer',
+              opacity: 0.9
             }}
           >
             {isLiked ? '❤️' : '🤍'} {likes}
@@ -120,6 +109,7 @@ function BlogCard({ post }) {
           <button className="blog-readmore" onClick={() => navigate(`/blog/${post.id}`)}>Read more</button>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -130,6 +120,29 @@ function BlogCard({ post }) {
 const Blog = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
+  const [rawBlogs, setRawBlogs] = useState([]);
+  const [listError, setListError] = useState(null);
+  const [listLoading, setListLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setListLoading(true);
+    setListError(null);
+    api
+      .listPublishedBlogs()
+      .then((list) => {
+        if (!cancelled) setRawBlogs(Array.isArray(list) ? list : []);
+      })
+      .catch((e) => {
+        if (!cancelled) setListError(e.message || 'Could not load posts');
+      })
+      .finally(() => {
+        if (!cancelled) setListLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const categories = [
     'All Categories', 'Technology', 'Health & Wellness',
@@ -141,40 +154,19 @@ const Blog = () => {
   ];
 
   const blogs = useMemo(() => {
-    const raw = localStorage.getItem('blogs');
-    let list = [];
-    try {
-      list = raw ? JSON.parse(raw) : [];
-    } catch {
-      list = [];
-    }
-    // Initialize dummy data if empty
-    if (list.length === 0) {
-      list = [
-        { id: 'b1', title: 'Knowing Your Rights', content: 'A quick guide to basic legal rights every woman should know.', tags: ['Legal', 'Awareness'], likes: 5, createdAt: new Date().toISOString() },
-        { id: 'b2', title: 'Mental Health Matters', content: 'Tips to maintain mental well-being and seek support.', tags: ['Mental Health'], likes: 12, createdAt: new Date(Date.now() - 86400000).toISOString() }
-      ];
-      localStorage.setItem('blogs', JSON.stringify(list));
-    }
-    
-    // Sorting Logic
-    let sortedList = [...list];
+    let sortedList = [...rawBlogs];
     if (sortBy === 'latest' || sortBy === 'most-recent') {
-        sortedList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      sortedList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (sortBy === 'most-popular') {
-        sortedList.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+      sortedList.sort((a, b) => (b.likes || 0) - (a.likes || 0));
     } else if (sortBy === 'alphabetical') {
-        sortedList.sort((a, b) => a.title.localeCompare(b.title));
+      sortedList.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     }
-    
-    // Filtering Logic (Simple implementation)
     if (selectedCategory !== 'all') {
-        // You would need to add category logic here if your blog objects have categories
-        // For now, this just returns the list as is since dummy data doesn't have categories field
+      // Category tags not stored on posts yet; keep full list
     }
-
     return sortedList;
-  }, [sortBy, selectedCategory]);
+  }, [rawBlogs, sortBy, selectedCategory]);
 
   return (
     <div className="blog-container">
@@ -213,7 +205,20 @@ const Blog = () => {
       </div>
 
       <div className="blog-content">
-        {blogs.length === 0 ? (
+        {listLoading ? (
+          <p style={{ textAlign: 'center', color: '#666' }}>Loading posts…</p>
+        ) : listError ? (
+          <div className="blog-grid">
+            <div className="blog-placeholder">
+              <h3>Could not load posts</h3>
+              <p>{listError}</p>
+              <p style={{ fontSize: '0.9rem' }}>
+                Start the API with <code>npm run server</code> from the project root, or run{' '}
+                <code>npm run dev</code> for client + server together.
+              </p>
+            </div>
+          </div>
+        ) : blogs.length === 0 ? (
           <div className="blog-grid">
             <div className="blog-placeholder">
               <div className="placeholder-icon"></div>

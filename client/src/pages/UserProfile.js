@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userDB, friendRequestDB, storyDB } from '../utils/database';
+import * as api from '../api/divaApi';
 import './Profile.css';
 
 const UserProfile = () => {
   const { userId } = useParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, updateUser } = useAuth();
   const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState('grid');
@@ -30,36 +30,69 @@ const UserProfile = () => {
     }
   `;
 
-  // Get profile user data
-  const profileUser = useMemo(() => {
-    if (!userId) return null;
-    return userDB.getUserById(userId);
-  }, [userId, refreshKey]);
+  const [profileUser, setProfileUser] = useState(null);
+  const [userBlogs, setUserBlogs] = useState([]);
+  const [userStories, setUserStories] = useState([]);
+  const [followersList, setFollowersList] = useState([]);
+  const [followingList, setFollowingList] = useState([]);
+  const [sentOutgoing, setSentOutgoing] = useState([]);
+  const [pendingIncoming, setPendingIncoming] = useState([]);
+  const [friendIds, setFriendIds] = useState([]);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  // Get user's blogs
-  const userBlogs = useMemo(() => {
-    if (!profileUser?.id) return [];
-    try {
-      const raw = localStorage.getItem('blogs');
-      const allBlogs = raw ? JSON.parse(raw) : [];
-      return allBlogs.filter(blog => blog.userId === profileUser.id);
-    } catch {
-      return [];
-    }
-  }, [profileUser?.id]);
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    setProfileLoading(true);
+    (async () => {
+      try {
+        const u = await api.getUser(userId);
+        if (cancelled) return;
+        setProfileUser(u);
+        const [blogs, allStories, followers, following] = await Promise.all([
+          api.getUserBlogs(userId),
+          api.storiesActive(),
+          api.getFollowers(userId),
+          api.getFollowing(userId)
+        ]);
+        if (cancelled) return;
+        setUserBlogs(Array.isArray(blogs) ? blogs : []);
+        setFollowersList(Array.isArray(followers) ? followers : []);
+        setFollowingList(Array.isArray(following) ? following : []);
+        const storiesForUser = (Array.isArray(allStories) ? allStories : [])
+          .filter((s) => s.userId === userId)
+          .sort(
+            (a, b) =>
+              new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+          );
+        setUserStories(storiesForUser);
 
-  // Get user's stories
-  const userStories = useMemo(() => {
-    if (!profileUser?.id) return [];
-    try {
-      const allActiveStories = storyDB.getActiveStories();
-      return allActiveStories
-        .filter(story => story.userId === profileUser.id)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    } catch {
-      return [];
-    }
-  }, [profileUser?.id]);
+        if (currentUser?.id && currentUser.id !== userId) {
+          const [sent, inc, friends] = await Promise.all([
+            api.followsSent(),
+            api.followsIncoming(),
+            api.followsFriends()
+          ]);
+          if (!cancelled) {
+            setSentOutgoing(Array.isArray(sent) ? sent : []);
+            setPendingIncoming(Array.isArray(inc) ? inc : []);
+            setFriendIds(Array.isArray(friends) ? friends : []);
+          }
+        } else if (!cancelled) {
+          setSentOutgoing([]);
+          setPendingIncoming([]);
+          setFriendIds([]);
+        }
+      } catch {
+        if (!cancelled) setProfileUser(null);
+      } finally {
+        if (!cancelled) setProfileLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, refreshKey, currentUser?.id]);
 
   const handleProfilePictureClick = () => {
     if (userStories.length > 0) {
@@ -87,26 +120,10 @@ const UserProfile = () => {
     }
   };
 
-  // Get followers list
-  const followersList = useMemo(() => {
-    if (!profileUser?.id) return [];
-    const followerIds = friendRequestDB.getFollowers(profileUser.id);
-    return followerIds.map(id => userDB.getUserById(id)).filter(Boolean);
-  }, [profileUser?.id, refreshKey]);
-
-  // Get following list
-  const followingList = useMemo(() => {
-    if (!profileUser?.id) return [];
-    const followingIds = friendRequestDB.getFollowing(profileUser.id);
-    return followingIds.map(id => userDB.getUserById(id)).filter(Boolean);
-  }, [profileUser?.id, refreshKey]);
-
-  // Check if current user follows profile user
   const isFollowing = useMemo(() => {
     if (!currentUser?.id || !profileUser?.id) return false;
-    const following = friendRequestDB.getFollowing(currentUser.id);
-    return following.includes(profileUser.id);
-  }, [currentUser?.id, profileUser?.id, refreshKey]);
+    return friendIds.includes(profileUser.id);
+  }, [currentUser?.id, profileUser?.id, friendIds]);
 
   // Check if profile is private and user can view
   const canViewContent = useMemo(() => {
@@ -117,56 +134,64 @@ const UserProfile = () => {
     return isFollowing;
   }, [profileUser, isFollowing]);
 
-  // Check request status
   const requestStatus = useMemo(() => {
     if (!currentUser?.id || !profileUser?.id || currentUser.id === profileUser.id) return null;
-    
-    const sentRequests = friendRequestDB.getRequestsSentByUser(currentUser.id);
-    const pendingRequests = friendRequestDB.getPendingRequestsForUser(currentUser.id);
-    
-    const sentReq = sentRequests.find(r => r.toUserId === profileUser.id);
+    if (friendIds.includes(profileUser.id)) return { type: 'friends' };
+    const sentReq = sentOutgoing.find((r) => r.toUserId === profileUser.id);
     if (sentReq) return { type: 'sent', requestId: sentReq.id };
-    
-    const receivedReq = pendingRequests.find(r => r.fromUserId === profileUser.id);
+    const receivedReq = pendingIncoming.find((r) => r.fromUserId === profileUser.id);
     if (receivedReq) return { type: 'received', requestId: receivedReq.id };
-    
-    // Check if already friends (accepted request)
-    const allRequests = friendRequestDB.getAllRequests();
-    const acceptedReq = allRequests.find(r => 
-      ((r.fromUserId === currentUser.id && r.toUserId === profileUser.id) ||
-       (r.fromUserId === profileUser.id && r.toUserId === currentUser.id)) &&
-      r.status === 'accepted'
-    );
-    if (acceptedReq) return { type: 'friends' };
-    
     return { type: 'none' };
-  }, [currentUser?.id, profileUser?.id, refreshKey]);
+  }, [currentUser?.id, profileUser?.id, friendIds, sentOutgoing, pendingIncoming]);
 
-  const handleSendRequest = () => {
+  const handleSendRequest = async () => {
     if (!currentUser?.id || !profileUser?.id) return;
-    const result = friendRequestDB.sendRequest(currentUser.id, profileUser.id);
-    if (result) {
-      setRefreshKey(prev => prev + 1);
+    try {
+      await api.followSend(profileUser.id);
+      setRefreshKey((prev) => prev + 1);
       alert('Friend request sent!');
+    } catch {
+      alert('Could not send request.');
     }
   };
 
-  const handleAcceptRequest = () => {
+  const handleAcceptRequest = async () => {
     if (!requestStatus?.requestId) return;
-    const result = friendRequestDB.acceptRequest(requestStatus.requestId);
-    if (result) {
-      setRefreshKey(prev => prev + 1);
+    try {
+      await api.followAccept(requestStatus.requestId);
+      setRefreshKey((prev) => prev + 1);
       alert('Friend request accepted!');
+    } catch {
+      alert('Could not accept.');
     }
   };
 
-  const handleDeclineRequest = () => {
+  const handleDeclineRequest = async () => {
     if (!requestStatus?.requestId) return;
-    const result = friendRequestDB.declineRequest(requestStatus.requestId);
-    if (result) {
-      setRefreshKey(prev => prev + 1);
+    try {
+      await api.followDecline(requestStatus.requestId);
+      setRefreshKey((prev) => prev + 1);
+    } catch {
+      /* ignore */
     }
   };
+
+  const handleUnfollow = async () => {
+    if (!currentUser?.id || !profileUser?.id) return;
+    if (!window.confirm('Unfollow this user? They will be removed from your following list.')) return;
+    try {
+      await api.followUnfollow(profileUser.id);
+      const fresh = await api.authMe();
+      updateUser(fresh);
+      setRefreshKey((k) => k + 1);
+    } catch {
+      alert('Could not unfollow.');
+    }
+  };
+
+  if (profileLoading) {
+    return <div className="blog-detail-loading">Loading profile…</div>;
+  }
 
   if (!profileUser) {
     return (
@@ -239,7 +264,11 @@ const UserProfile = () => {
             </div>
 
             <div className="profile-details">
-              <div className="profile-fullname">{profileUser?.fullName || profileUser?.username || 'Full Name'}</div>
+              <div className="profile-fullname">{profileUser?.fullName || profileUser?.username || 'Full name'}</div>
+              <div className="profile-handle">@{profileUser?.username || 'username'}</div>
+              {profileUser?.city && (
+                <div className="profile-meta-line">📍 {profileUser.city}</div>
+              )}
               <div className="profile-bio">{profileUser?.bio || 'No bio yet...'}</div>
             </div>
           </div>
@@ -263,8 +292,8 @@ const UserProfile = () => {
             </>
           )}
           {requestStatus?.type === 'friends' && (
-            <button className="profile-btn edit-btn" disabled style={{ background: '#4caf50', color: 'white' }}>
-              Following
+            <button type="button" className="profile-btn archive-btn" onClick={handleUnfollow}>
+              Unfollow
             </button>
           )}
           {requestStatus?.type === 'none' && (

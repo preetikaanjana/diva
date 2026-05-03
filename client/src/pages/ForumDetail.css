@@ -1,0 +1,107 @@
+.forum-detail-page .forum-category-pill {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.forum-detail-author {
+  margin: 12px 0 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.forum-question-body {
+  white-space: pre-wrap;
+}
+
+.forum-replies-section {
+  max-width: 800px;
+  margin: 28px auto 0;
+  padding: 0 20px 40px;
+}
+
+.forum-replies-heading {
+  font-size: 1.35rem;
+  color: #e91e63;
+  margin: 0 0 16px;
+}
+
+.forum-no-replies {
+  color: #888;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.forum-reply-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.forum-reply-card {
+  background: #fff;
+  border: 1px solid #ffe4ef;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 12px rgba(233, 30, 99, 0.06);
+}
+
+.forum-reply-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.forum-reply-text {
+  margin: 0;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.forum-reply-form {
+  background: #fff0f6;
+  border: 1px solid #ffd0e6;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.forum-reply-label {
+  display: block;
+  font-weight: 600;
+  color: #c2185b;
+  margin-bottom: 8px;
+}
+
+.forum-reply-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ffc2d9;
+  border-radius: 10px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.forum-reply-submit {
+  background: linear-gradient(135deg, #ff69b4, #e91e63);
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.forum-reply-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

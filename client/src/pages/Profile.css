@@ -298,6 +298,18 @@
   box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
 }
 
+.create-blog-card .profile-drafts-btn {
+  margin-top: 12px;
+  background: #fff;
+  color: #e91e63;
+  border: 2px solid #e91e63;
+  box-shadow: none;
+}
+
+.create-blog-card .profile-drafts-btn:hover {
+  background: #fff0f6;
+}
+
 /* Profile Tabs */
 .profile-tabs {
   display: flex;
@@ -753,4 +765,104 @@
 
 .settings-item.logout:hover {
   background: #fff0f0;
+}
+
+.profile-handle {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 6px;
+}
+
+.profile-meta-line {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.profile-meta-private {
+  color: #777;
+  font-size: 13px;
+}
+
+.story-options-hint {
+  margin: 12px 0 0;
+  padding: 0 8px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.liked-blog-card {
+  background: #fff5f8;
+  border: 1px solid #f8bbd9;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-align: left;
+}
+
+.liked-blog-cover-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  line-height: 0;
+  background: #fce4ec;
+}
+
+.liked-blog-cover {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.liked-blog-body {
+  padding: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.liked-blog-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.liked-blog-date {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.liked-blog-snippet {
+  font-size: 14px;
+  color: #555;
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+.liked-blog-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.liked-blog-unlike {
+  background: transparent;
+  border: 1px solid #e91e63;
+  color: #e91e63;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.liked-blog-unlike:hover {
+  background: #fce4ec;
 }

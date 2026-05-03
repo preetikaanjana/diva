@@ -1,28 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import * as api from '../api/divaApi';
 import './Forum.css';
-
-// 1. Defined default data outside the component for cleaner code
-const DEFAULT_QUESTIONS = [
-  { 
-    id: 'q1', 
-    title: 'How to file an FIR?', 
-    category: 'Legal Rights', 
-    details: 'I need help understanding the process.', 
-    author: 'Ananya', 
-    createdAt: new Date().toISOString(), 
-    replies: [] 
-  },
-  { 
-    id: 'q2', 
-    title: 'Best yoga for stress?', 
-    category: 'Mental Health', 
-    details: 'Looking for recommendations.', 
-    author: 'Kiran', 
-    createdAt: new Date().toISOString(), 
-    replies: [] 
-  }
-];
 
 function Forum() {
   // --- State Management ---
@@ -32,24 +11,23 @@ function Forum() {
 
   // --- Effects ---
   useEffect(() => {
-    // Load questions from LocalStorage on initial render
-    const rawData = localStorage.getItem('questions');
-    let dataList = [];
-
-    if (rawData) {
-      dataList = JSON.parse(rawData);
-    } else {
-      // If storage is empty, initialize with default data
-      dataList = DEFAULT_QUESTIONS;
-      localStorage.setItem('questions', JSON.stringify(dataList));
-    }
-
-    // Sort by newest first
-    const sortedList = dataList.sort((a, b) => 
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
-    
-    setQuestions(sortedList);
+    let cancelled = false;
+    api
+      .listQuestions()
+      .then((list) => {
+        if (!cancelled) {
+          const sorted = [...(Array.isArray(list) ? list : [])].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setQuestions(sorted);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setQuestions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // --- Helper Functions ---
@@ -127,7 +105,7 @@ function Forum() {
                 </span>
                 
                 {/* Question Title */}
-                <Link to="#" className="question-title">
+                <Link to={`/forum/${q.id}`} className="question-title">
                   {q.title}
                 </Link>
                 
@@ -142,7 +120,9 @@ function Forum() {
                 <span className="reply-count">
                   💬 {q.replies?.length || 0} Replies
                 </span>
-                <button className="view-btn">View</button>
+                <Link to={`/forum/${q.id}`} className="view-btn">
+                  View
+                </Link>
               </div>
 
             </div>

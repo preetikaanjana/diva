@@ -20,10 +20,19 @@ const Sidebar = () => {
   ];
 
   const isActive = (path) => {
-    if (path === '/') {
-      return location.pathname === '/';
+    const p = location.pathname;
+    if (path === '/') return p === '/';
+    if (path === '/blog/create') return p === '/blog/create';
+    if (path === '/blog') {
+      if (p === '/blog') return true;
+      if (p.startsWith('/blog/')) {
+        const seg = p.split('/')[2];
+        if (seg === 'create' || seg === 'drafts') return false;
+        return true;
+      }
+      return false;
     }
-    return location.pathname.startsWith(path);
+    return p === path || p.startsWith(`${path}/`);
   };
 
   const handleLogout = () => {

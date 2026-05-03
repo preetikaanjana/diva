@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Chat.css';
+import { generateNlpResponse } from '../utils/chatbotNlp';
 
 const botName = 'Sakhi';
 const initialMessage = {
@@ -13,6 +14,14 @@ const suggestedPrompts = [
   "Mental Health Tips",
   "Career Guidance"
 ];
+
+function chatApiBaseUrl() {
+  const raw = process.env.REACT_APP_API_URL;
+  if (raw != null && String(raw).trim() !== '') {
+    return `${String(raw).replace(/\/$/, '')}/api`;
+  }
+  return '/api';
+}
 
 function Chat() {
   const [messages, setMessages] = useState([initialMessage]);
@@ -37,58 +46,54 @@ function Chat() {
     setTimeout(() => handleSend(prompt), 100);
   };
 
-  // --- THE BRAIN OF THE BOT (Internal Logic) ---
-  const generateResponse = (message) => {
-    const lowerMsg = message.toLowerCase();
-
-    // 1. Safety & Emergency
-    if (lowerMsg.includes('safety') || lowerMsg.includes('emergency') || lowerMsg.includes('police') || lowerMsg.includes('help')) {
-      return "🚨 **Emergency Contacts:**\n\n• **Women Helpline:** 1091\n• **Domestic Abuse:** 181\n• **Police:** 100\n• **Cyber Crime:** 1930\n\nPlease stay safe. Share your live location with a trusted contact if you feel unsafe.";
-    }
-
-    // 2. Legal Rights
-    if (lowerMsg.includes('legal') || lowerMsg.includes('right') || lowerMsg.includes('law') || lowerMsg.includes('harassment')) {
-      return "⚖️ **Your Legal Rights:**\n\n1. **Zero FIR:** You can file an FIR at any police station, regardless of jurisdiction.\n2. **Workplace Harassment:** The POSH Act protects you against sexual harassment at work.\n3. **Domestic Violence Act:** Protects women from physical, emotional, and economic abuse at home.\n\nWould you like details on a specific law?";
-    }
-
-    // 3. Mental Health
-    if (lowerMsg.includes('mental') || lowerMsg.includes('sad') || lowerMsg.includes('depress') || lowerMsg.includes('anxiety') || lowerMsg.includes('stress')) {
-      return "🧠 **Mental Health Matters:**\n\nIt's okay not to be okay. \n• Try the 5-4-3-2-1 grounding technique.\n• Reach out to a friend or the **Vandrevala Foundation Helpline: 1860-266-2345**.\n\nYou are strong, but you don't have to carry everything alone.";
-    }
-
-    // 4. Career & Financial Independence
-    if (lowerMsg.includes('career') || lowerMsg.includes('job') || lowerMsg.includes('money') || lowerMsg.includes('finance')) {
-      return "💼 **Career & Finance:**\n\n• **Upskilling:** Check out free courses on Swayam or Google Digital Garage.\n• **Schemes:** Look into the 'Mahila E-Haat' for entrepreneurs.\n• **Tip:** Financial independence is the first step to true freedom. Start saving a small amount every month.";
-    }
-
-    // 5. Greetings & Default
-    if (lowerMsg.includes('hi') || lowerMsg.includes('hello') || lowerMsg.includes('hey')) {
-      return "Hello! I am Sakhi, here to support you. You can ask me about safety, laws, or health.";
-    }
-
-    if (lowerMsg.includes('thank')) {
-      return "You're welcome! Remember, you are capable of amazing things. ✨";
-    }
-
-    return "I'm not sure about that, but I'm learning! You can ask me about **Safety**, **Legal Rights**, **Health**, or **Career**.";
-  };
-
   const handleSend = async (customMessage = null) => {
     const userMessage = customMessage || input.trim();
     if (userMessage) {
       // 1. Add User Message
-      setMessages(prev => [...prev, { text: userMessage, user: true }]);
+      const nextMessages = [...messages, { text: userMessage, user: true }];
+      setMessages(nextMessages);
       setInput('');
       setLoading(true);
 
-      // 2. Simulate Network Delay for Realism
-      setTimeout(() => {
-        // 3. Generate Response Locally (No Backend Needed)
-        const responseText = generateResponse(userMessage);
-        
-        setMessages(prev => [...prev, { text: responseText, user: false }]);
+      try {
+        const history = nextMessages
+          .slice(-8)
+          .filter((m) => m.text && m.text.trim())
+          .map((m) => ({
+            role: m.user ? 'user' : 'assistant',
+            content: m.text
+          }));
+
+        const response = await fetch(`${chatApiBaseUrl()}/chat/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userMessage, history })
+        });
+
+        if (!response.ok) {
+          throw new Error(`AI request failed (${response.status})`);
+        }
+
+        const data = await response.json();
+        const responseText = (data?.reply || '').trim();
+        if (!responseText) {
+          throw new Error('AI returned empty response');
+        }
+
+        setMessages((prev) => [...prev, { text: responseText, user: false }]);
+      } catch (error) {
+        const fallbackText = generateNlpResponse(userMessage);
+        setMessages((prev) => [
+          ...prev,
+          {
+            text:
+              `${fallbackText}\n\n(Using local NLP fallback right now because the AI service is unavailable.)`,
+            user: false
+          }
+        ]);
+      } finally {
         setLoading(false);
-      }, 1000); // 1 second delay
+      }
     }
   };
 

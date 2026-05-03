@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userDB } from '../utils/database';
+import * as api from '../api/divaApi';
 import './CreateBlog.css';
 
 const ChangePassword = () => {
@@ -25,7 +25,7 @@ const ChangePassword = () => {
     setSuccess('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -33,19 +33,6 @@ const ChangePassword = () => {
     // Validation
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       setError('Please fill in all fields');
-      return;
-    }
-
-    // Get user from database
-    const dbUser = userDB.getUserById(user.id);
-    if (!dbUser) {
-      setError('User not found');
-      return;
-    }
-
-    // Verify current password
-    if (dbUser.password !== formData.currentPassword) {
-      setError('Current password is incorrect');
       return;
     }
 
@@ -67,15 +54,13 @@ const ChangePassword = () => {
     setSubmitting(true);
 
     try {
-      // Update password in database
-      userDB.updateUser(user.id, { password: formData.newPassword });
+      await api.changePassword(formData.currentPassword, formData.newPassword);
       setSuccess('Password updated successfully!');
-      
       setTimeout(() => {
         navigate('/profile');
       }, 1500);
     } catch (err) {
-      setError('Failed to update password. Please try again.');
+      setError(err.message || 'Failed to update password. Please try again.');
       setSubmitting(false);
     }
   };

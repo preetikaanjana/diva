@@ -8,11 +8,11 @@ import Resources from './pages/Resources';
 import Forum from './pages/Forum';
 import Chat from './pages/Chat';
 import ContactUs from './pages/ContactUs';
-import CreatePost from './pages/CreatePost';
 import Blog from './pages/Blog';
 import CreateBlog from './pages/CreateBlog';
 import BlogDetail from './pages/BlogDetail';
-// import AboutMe from './pages/AboutMe';
+import BlogDrafts from './pages/BlogDrafts';
+import ForumDetail from './pages/ForumDetail';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
 import Profile from './pages/Profile';
@@ -39,12 +39,14 @@ function AppRoutes() {
     return isAuthenticated ? children : <Navigate to="/" />;
   };
 
+  const showSidebar = isAuthenticated && location.pathname !== '/';
+
   return (
     <div className="App">
-      {/* Sidebar only shows after authentication */}
-      {isAuthenticated && <Sidebar />}
-      
-      <div className={`main-content ${isAuthenticated ? 'with-sidebar' : 'without-sidebar'}`}>
+      {/* Sidebar: logged-in users only, hidden on landing page (/) */}
+      {showSidebar && <Sidebar />}
+
+      <div className={`main-content ${showSidebar ? 'with-sidebar' : 'without-sidebar'}`}>
         <Routes>
           {/* Home page - shows existing front page with login options */}
           <Route path="/" element={<Home />} />
@@ -84,6 +86,16 @@ function AppRoutes() {
               <Forum />
             </ProtectedRoute>
           } />
+          <Route path="/forum/ask" element={
+            <ProtectedRoute>
+              <AskQuestion />
+            </ProtectedRoute>
+          } />
+          <Route path="/forum/:id" element={
+            <ProtectedRoute>
+              <ForumDetail />
+            </ProtectedRoute>
+          } />
           <Route path="/chat" element={
             <ProtectedRoute>
               <Chat />
@@ -99,27 +111,19 @@ function AppRoutes() {
               <Blog />
             </ProtectedRoute>
           } />
-          <Route path="/blog/:id" element={
-            <ProtectedRoute>
-              <BlogDetail />
-            </ProtectedRoute>
-          } />
           <Route path="/blog/create" element={
             <ProtectedRoute>
               <CreateBlog />
             </ProtectedRoute>
           } />
-          <Route path="/forum/ask" element={
+          <Route path="/blog/drafts" element={
             <ProtectedRoute>
-              <AskQuestion />
+              <BlogDrafts />
             </ProtectedRoute>
           } />
-          {false && (
-            <Route path="/about" element={<div />} />
-          )}
-          <Route path="/forum/create" element={
+          <Route path="/blog/:id" element={
             <ProtectedRoute>
-              <CreatePost />
+              <BlogDetail />
             </ProtectedRoute>
           } />
           <Route path="/change-password" element={
