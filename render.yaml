@@ -4,8 +4,9 @@ services:
     name: diva
     runtime: node
     plan: free
-    buildCommand: npm install --prefix server && cd client && npm ci && npm run build
-    startCommand: NODE_ENV=production node server/index.js
+    buildCommand: npm run render:build
+    startCommand: npm run render:start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
