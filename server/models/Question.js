@@ -23,8 +23,7 @@ const questionSchema = new mongoose.Schema(
     likes: { type: Number, default: 0 },
     createdAt: { type: String, required: true },
     updatedAt: { type: String, required: true }
-  },
-  { _id: false }
+  }
 );
 
 module.exports = mongoose.model('Question', questionSchema);

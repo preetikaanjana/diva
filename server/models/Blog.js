@@ -13,8 +13,7 @@ const blogSchema = new mongoose.Schema(
     createdAt: { type: String, required: true },
     updatedAt: { type: String, required: true },
     likedUserIds: { type: [String], default: [] }
-  },
-  { _id: false }
+  }
 );
 
 module.exports = mongoose.model('Blog', blogSchema);
