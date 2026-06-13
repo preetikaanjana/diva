@@ -4,24 +4,8 @@ import './ContactUs.css';
 function ContactUs() {
   return (
     <div className="contact-section">
-        <h1>Contact Us</h1>
-        <p>If you have questions, need assistance, or want to share your story, please reach out to us:</p>
-        <ul>
-            <li>
-              Email:{' '}
-              <a
-                href="https://mail.google.com/mail/?view=cm&fs=1&to=preetikaanjana%40gmail.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                preetikaanjana@gmail.com
-              </a>
-            </li>
-            <li>Phone: +91-626-368-8330</li>
-            <li>Address: Ujjain Madhya Pradesh, Village Gunaya</li>
-        </ul>
 
-        <h2>Share Your Problem or Concern</h2>
+        <h1>Share Your Problem or Concern</h1>
         <form action="#" method="post" className="contact-form">
             <label htmlFor="name">Your Name:</label>
             <input type="text" id="name" name="name" placeholder="Enter your name" required />
