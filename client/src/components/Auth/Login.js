@@ -35,9 +35,18 @@ const Login = () => {
       login(u, token);
       navigate('/profile');
     } catch (err) {
-      if (err.status === 404) setError('No user found');
-      else if (err.status === 401) setError('Incorrect password');
-      else setError(err.message || 'Login failed. Please try again.');
+      if (err.data?.requiresVerification) {
+        setError(err.message || 'Email not verified.');
+        setTimeout(() => {
+          navigate('/signup', { state: { email: err.data.email, requiresVerification: true } });
+        }, 2000);
+      } else if (err.status === 404) {
+        setError('No user found');
+      } else if (err.status === 401) {
+        setError('Incorrect password');
+      } else {
+        setError(err.message || 'Login failed. Please try again.');
+      }
     }
   };
 

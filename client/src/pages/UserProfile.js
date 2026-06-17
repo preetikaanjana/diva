@@ -133,6 +133,11 @@ const UserProfile = () => {
     return friendIds.includes(profileUser.id);
   }, [currentUser?.id, profileUser?.id, friendIds]);
 
+  const followsMe = useMemo(() => {
+    if (!currentUser?.id || !profileUser?.id) return false;
+    return followingList.some((u) => u.id === currentUser.id);
+  }, [currentUser?.id, profileUser?.id, followingList]);
+
   // Check if profile is private and user can view
   const canViewContent = useMemo(() => {
     if (!profileUser) return false;
@@ -144,13 +149,14 @@ const UserProfile = () => {
 
   const requestStatus = useMemo(() => {
     if (!currentUser?.id || !profileUser?.id || currentUser.id === profileUser.id) return null;
-    if (friendIds.includes(profileUser.id)) return { type: 'friends' };
+    if (isFollowing) return { type: 'friends' };
     const sentReq = sentOutgoing.find((r) => r.toUserId === profileUser.id);
     if (sentReq) return { type: 'sent', requestId: sentReq.id };
     const receivedReq = pendingIncoming.find((r) => r.fromUserId === profileUser.id);
     if (receivedReq) return { type: 'received', requestId: receivedReq.id };
+    if (followsMe) return { type: 'follow_back' };
     return { type: 'none' };
-  }, [currentUser?.id, profileUser?.id, friendIds, sentOutgoing, pendingIncoming]);
+  }, [currentUser?.id, profileUser?.id, isFollowing, followsMe, sentOutgoing, pendingIncoming]);
 
   const handleSendRequest = async () => {
     if (!currentUser?.id || !profileUser?.id) return;
@@ -304,9 +310,14 @@ const UserProfile = () => {
               Unfollow
             </button>
           )}
+          {requestStatus?.type === 'follow_back' && (
+            <button className="profile-btn edit-btn" onClick={handleSendRequest}>
+              Follow Back
+            </button>
+          )}
           {requestStatus?.type === 'none' && (
             <button className="profile-btn edit-btn" onClick={handleSendRequest}>
-              Send Request
+              Follow
             </button>
           )}
         </div>

@@ -321,6 +321,9 @@ app.post('/api/auth/register', async (req, res) => {
     const id = crypto.randomUUID();
     const passwordHash = bcrypt.hashSync(password, 10);
     const now = new Date().toISOString();
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationExpires = new Date(Date.now() + 24 * 3600000); // 24 hours
+
     const newUser = {
       id,
       username: userNorm,
@@ -336,11 +339,37 @@ app.post('/api/auth/register', async (req, res) => {
       profileImage: null,
       isPrivate: false,
       savedBlogIds: [],
+      isVerified: false,
+      verificationToken,
+      verificationExpires,
       createdAt: now,
       updatedAt: now
     };
     await User.create(newUser);
-    res.json({ user: publicUser(newUser, { includePhone: true }), token: tokenFor(id) });
+
+    // Send the verification OTP
+    try {
+      await sendEmail({
+        to: emailNorm,
+        subject: 'Diva Support - Confirm Your Email',
+        text: `Your Diva account verification code is: ${verificationToken}. Please enter this code to complete registration.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fff5f8; border-radius: 12px; border: 1px solid #ff69b4; max-width: 500px;">
+            <h2 style="color: #e91e63; text-align: center;">Welcome to Diva!</h2>
+            <p>Thank you for signing up! Please verify your email address by using the following 6-digit verification code:</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <span style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #c2185b; background-color: #fff; padding: 12px 24px; border-radius: 8px; border: 1px solid #f48fb1; display: inline-block;">${verificationToken}</span>
+            </div>
+            <p style="color: #666; font-size: 13px;">This code is valid for 24 hours. If you did not create an account, please ignore this email.</p>
+          </div>
+        `
+      });
+      console.log(`[SIGNUP] Verification email sent to ${emailNorm}`);
+    } catch (mailError) {
+      console.error('[SIGNUP] Failed to send verification email:', mailError);
+    }
+
+    res.json({ requiresVerification: true, email: emailNorm });
   } catch (e) {
     if (e.code === 11000) {
       return res.status(400).json({ error: 'Email or username already in use' });
@@ -372,10 +401,100 @@ app.post('/api/auth/login', async (req, res) => {
     if (!bcrypt.compareSync(password, user.passwordHash)) {
       return res.status(401).json({ error: 'Incorrect password' });
     }
+    if (user.isVerified === false) {
+      return res.status(400).json({
+        error: 'Email not verified. Please verify your email first.',
+        requiresVerification: true,
+        email: user.email
+      });
+    }
     res.json({ user: publicUser(user, { includePhone: true }), token: tokenFor(user.id) });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+app.post('/api/auth/verify-registration', async (req, res) => {
+  try {
+    const { email, token } = req.body;
+    if (!email || !token) {
+      return res.status(400).json({ error: 'Email and verification code are required' });
+    }
+
+    const emailNorm = email.trim().toLowerCase();
+    const user = await User.findOne({
+      email: emailNorm,
+      verificationToken: token.trim(),
+      verificationExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationExpires = null;
+    await user.save();
+
+    console.log(`[SIGNUP] Email verified successfully for ${emailNorm}`);
+    res.json({ user: publicUser(user.toObject(), { includePhone: true }), token: tokenFor(user.id) });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Email verification failed' });
+  }
+});
+
+app.post('/api/auth/resend-verification-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const emailNorm = email.trim().toLowerCase();
+    const user = await User.findOne({ email: emailNorm });
+    if (!user) {
+      return res.status(404).json({ error: 'No account found with this email' });
+    }
+    if (user.isVerified) {
+      return res.status(400).json({ error: 'This account is already verified. Please log in.' });
+    }
+
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationExpires = new Date(Date.now() + 24 * 3600000); // 24 hours
+
+    user.verificationToken = verificationToken;
+    user.verificationExpires = verificationExpires;
+    await user.save();
+
+    try {
+      await sendEmail({
+        to: emailNorm,
+        subject: 'Diva Support - Confirm Your Email',
+        text: `Your Diva account verification code is: ${verificationToken}. Please enter this code to complete registration.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fff5f8; border-radius: 12px; border: 1px solid #ff69b4; max-width: 500px;">
+            <h2 style="color: #e91e63; text-align: center;">Welcome to Diva!</h2>
+            <p>Please verify your email address by using the following 6-digit verification code:</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <span style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #c2185b; background-color: #fff; padding: 12px 24px; border-radius: 8px; border: 1px solid #f48fb1; display: inline-block;">${verificationToken}</span>
+            </div>
+            <p style="color: #666; font-size: 13px;">This code is valid for 24 hours. If you did not request this, please ignore this email.</p>
+          </div>
+        `
+      });
+      console.log(`[SIGNUP] Resent verification email to ${emailNorm}`);
+    } catch (mailError) {
+      console.error('[SIGNUP] Failed to resend verification email:', mailError);
+      return res.status(500).json({ error: `Failed to send email: ${mailError.message || mailError}` });
+    }
+
+    res.json({ message: 'A new verification code has been sent to your email.' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Resend code failed' });
   }
 });
 
@@ -1023,15 +1142,14 @@ app.get('/api/follows/sent', requireAuth, async (req, res) => {
 
 app.get('/api/follows/friends', requireAuth, async (req, res) => {
   try {
-    const accepted = await FriendRequest.find({ status: 'accepted' }).lean();
-    const set = new Set();
-    accepted.forEach((r) => {
-      if (r.fromUserId === req.userId) set.add(r.toUserId);
-      if (r.toUserId === req.userId) set.add(r.fromUserId);
-    });
-    res.json([...set]);
+    const accepted = await FriendRequest.find({
+      fromUserId: req.userId,
+      status: 'accepted'
+    }).lean();
+    const ids = accepted.map((r) => r.toUserId);
+    res.json(ids);
   } catch (e) {
-    res.status(500).json({ error: 'Failed' });
+    res.status(500).json({ error: 'Failed to fetch following users' });
   }
 });
 

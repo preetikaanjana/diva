@@ -72,6 +72,15 @@ function Feed() {
       return [];
     }
   });
+  const [followerIds, setFollowerIds] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`feed_followers_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(() => {
     try {
       const cached = localStorage.getItem('feed_blogs');
@@ -92,6 +101,9 @@ function Feed() {
         
         const cachedFriends = localStorage.getItem(`feed_friends_${user.id}`);
         if (cachedFriends) setFriendIds(JSON.parse(cachedFriends));
+
+        const cachedFollowers = localStorage.getItem(`feed_followers_${user.id}`);
+        if (cachedFollowers) setFollowerIds(JSON.parse(cachedFollowers));
       } catch (e) {
         console.error('Error loading cached feed data:', e);
       }
@@ -133,12 +145,13 @@ function Feed() {
       }
 
       if (user?.id) {
-        let inc = [], sent = [], friends = [];
+        let inc = [], sent = [], friends = [], followers = [];
         
         await Promise.all([
           api.followsIncoming().then(res => inc = res).catch(e => console.error('Failed to get incoming follows:', e)),
           api.followsSent().then(res => sent = res).catch(e => console.error('Failed to get sent follows:', e)),
-          api.followsFriends().then(res => friends = res).catch(e => console.error('Failed to get friends:', e))
+          api.followsFriends().then(res => friends = res).catch(e => console.error('Failed to get friends:', e)),
+          api.getFollowers(user.id).then(res => followers = res).catch(e => console.error('Failed to get followers:', e))
         ]);
         
         if (cancelled) return;
@@ -154,10 +167,14 @@ function Feed() {
         if (Array.isArray(friends)) {
           try { localStorage.setItem(`feed_friends_${user.id}`, JSON.stringify(friends)); } catch(e){}
         }
+        const fIds = Array.isArray(followers) ? followers.map(u => u.id) : [];
+        setFollowerIds(fIds);
+        try { localStorage.setItem(`feed_followers_${user.id}`, JSON.stringify(fIds)); } catch(e){}
       } else {
         setPendingIncoming([]);
         setSentOutgoing([]);
         setFriendIds([]);
+        setFollowerIds([]);
       }
       setLoading(false);
     })();
@@ -186,6 +203,7 @@ function Feed() {
     const sentTo = new Set(sentOutgoing.map((r) => r.toUserId));
     const receivedFrom = new Set(pendingIncoming.map((r) => r.fromUserId));
     const friendsSet = new Set(friendIds);
+    const followerSet = new Set(followerIds);
 
     return otherUsers
       .filter((u) => !friendsSet.has(u.id))
@@ -198,11 +216,13 @@ function Feed() {
         } else if (receivedFrom.has(u.id)) {
           status = 'pending';
           requestId = pendingIncoming.find((r) => r.fromUserId === u.id)?.id;
+        } else if (followerSet.has(u.id)) {
+          status = 'follow_back';
         }
         return { ...u, requestStatus: status, requestId };
       })
       .slice(0, 10);
-  }, [otherUsers, sentOutgoing, pendingIncoming, friendIds, user?.id]);
+  }, [otherUsers, sentOutgoing, pendingIncoming, friendIds, followerIds, user?.id]);
 
   const handleSendRequest = async (toUserId) => {
     if (!user?.id) return;
@@ -783,12 +803,19 @@ function Feed() {
                         Decline
                       </button>
                     </div>
+                  ) : s.requestStatus === 'follow_back' ? (
+                    <button 
+                      className="follow-btn" 
+                      onClick={() => handleSendRequest(s.id)}
+                    >
+                      Follow Back
+                    </button>
                   ) : (
                     <button 
                       className="follow-btn" 
                       onClick={() => handleSendRequest(s.id)}
                     >
-                      Send Request
+                      Follow
                     </button>
                   )}
                 </div>

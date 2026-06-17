@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema(
     savedBlogIds: { type: [String], default: [] },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, default: null },
+    verificationExpires: { type: Date, default: null },
     createdAt: { type: String, required: true },
     updatedAt: { type: String, required: true }
   },

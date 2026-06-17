@@ -240,3 +240,19 @@ export async function deleteAccount(password) {
     body: { password }
   });
 }
+
+export async function authVerifyRegistration(email, token) {
+  return request('/auth/verify-registration', {
+    method: 'POST',
+    body: { email, token },
+    skipAuth: true
+  });
+}
+
+export async function authResendVerificationOtp(email) {
+  return request('/auth/resend-verification-otp', {
+    method: 'POST',
+    body: { email },
+    skipAuth: true
+  });
+}
