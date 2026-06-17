@@ -6,7 +6,7 @@ import './CreateBlog.css';
 
 function EditProfile() {
   // We need 'login' (or a specific updateUser function) to update the global state
-  const { user, updateUser } = useAuth(); 
+  const { user, logout, updateUser } = useAuth(); 
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -61,6 +61,29 @@ function EditProfile() {
         console.error("Failed to save profile", error);
         alert(error.message || 'Failed to save profile. Please try again.');
         setSubmitting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const password = window.prompt("To verify your identity, please enter your password to delete your account:");
+    if (password === null) return;
+    if (!password.trim()) {
+      alert("Password is required to delete your account.");
+      return;
+    }
+
+    if (window.confirm("ARE YOU ABSOLUTELY SURE? This action is permanent and cannot be undone.")) {
+      setSubmitting(true);
+      try {
+        await api.deleteAccount(password);
+        alert("Your account has been successfully deleted. We are sorry to see you go.");
+        logout();
+        navigate('/');
+      } catch (err) {
+        alert(err.message || "Failed to delete account. Please verify your password.");
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -221,6 +244,37 @@ function EditProfile() {
           </button>
         </div>
 
+        <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #ffccde' }}>
+          <h3 style={{ color: '#c2185b', fontSize: '18px', marginBottom: '10px' }}>Danger Zone</h3>
+          <p style={{ color: '#666', fontSize: '14px', marginBottom: '16px' }}>
+            Deleting your account is permanent. All your blogs, stories, questions, and connections will be deleted forever.
+          </p>
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            style={{
+              backgroundColor: '#fff',
+              border: '2px solid #e91e63',
+              borderRadius: '8px',
+              color: '#e91e63',
+              padding: '10px 16px',
+              fontSize: '15px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = '#e91e63';
+              e.target.style.color = '#fff';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = '#fff';
+              e.target.style.color = '#e91e63';
+            }}
+          >
+            🗑️ Delete Account
+          </button>
+        </div>
       </form>
     </div>
   );

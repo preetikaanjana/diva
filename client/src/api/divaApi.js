@@ -233,3 +233,10 @@ export async function authResetPassword(email, token, newPassword) {
     skipAuth: true
   });
 }
+
+export async function deleteAccount(password) {
+  return request('/users/me', {
+    method: 'DELETE',
+    body: { password }
+  });
+}

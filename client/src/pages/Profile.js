@@ -940,7 +940,7 @@ function ProfileBlogCard({ blog, onChanged }) {
   };
 
   return (
-    <div style={{ background: '#ffe6f0', border: '1px solid #ffc1dd', borderRadius: 12, padding: 0, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ background: '#ffe6f0', border: '1px solid #ffc1dd', borderRadius: 12, padding: 0, overflow: 'visible', position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <button type="button" onClick={() => setMenuOpen((v) => !v)} style={{ position: 'absolute', right: 8, top: 8, zIndex: 2, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: '18px', width: 32, height: 32 }}>⋯</button>
       {menuOpen && (
         <div style={{ position: 'absolute', right: 8, top: 40, background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', zIndex: 10 }}>
@@ -950,7 +950,7 @@ function ProfileBlogCard({ blog, onChanged }) {
         </div>
       )}
       {blog.coverImage && (
-        <img src={blog.coverImage} alt="" style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block' }} />
+        <img src={blog.coverImage} alt="" style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block', borderTopLeftRadius: '11px', borderTopRightRadius: '11px' }} />
       )}
       <div style={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column' }}>
       <div style={{ fontWeight: 600, marginBottom: 6, paddingRight: '20px', color: '#c2185b' }}>{blog.title}</div>

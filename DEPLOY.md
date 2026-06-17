@@ -15,6 +15,8 @@ The app is set up for **one public URL**: Node serves the API under `/api/*` and
 | `PORT` | Server | Usually automatic | Platforms set this (e.g. Render, Heroku). |
 | `REACT_APP_API_URL` | **Build time** (client) | No | **Omit** for same-host deploy (recommended). Set only if the API lives on another domain (e.g. `https://api.example.com`). |
 | `CLIENT_ORIGIN` | Server | Rare | Only for **split** deploy (static site + API). Set to your site origin, e.g. `https://app.example.com`. |
+| `EMAIL_USER` | Server | Yes (for OTP) | The Gmail address used to send reset OTP emails (e.g. `preetikaanjana@gmail.com`). |
+| `EMAIL_PASS` | Server | Yes (for OTP) | Google App Password (16 characters) created for Nodemailer. |
 
 ## Build and run (any VPS or container)
 

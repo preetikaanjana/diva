@@ -29,7 +29,10 @@ if (process.env.EMAIL_PASS && process.env.EMAIL_PASS !== 'your_gmail_app_passwor
     },
     tls: {
       rejectUnauthorized: false
-    }
+    },
+    connectionTimeout: 8000,
+    socketTimeout: 8000,
+    greetingTimeout: 8000
   });
 }
 
