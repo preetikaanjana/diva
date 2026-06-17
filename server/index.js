@@ -378,9 +378,17 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         console.log(`[PASSWORD RESET] Email sent successfully via Nodemailer to ${emailNorm}`);
       } else {
         console.log(`[PASSWORD RESET] Nodemailer not configured. Simulation code for ${emailNorm}: ${token}`);
+        if (isProduction) {
+          throw new Error('Email delivery service is not configured on the server. Please check environment variables.');
+        }
       }
     } catch (mailError) {
       console.error('Failed to send email via Nodemailer:', mailError);
+      // Roll back the token on error
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      return res.status(500).json({ error: `Email delivery failed: ${mailError.message || mailError}` });
     }
 
     res.json({
@@ -1158,6 +1166,32 @@ app.delete('/api/stories/:id', requireAuth, async (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, service: 'diva-api', db: 'mongodb' });
+});
+
+app.get('/api/health/email', async (req, res) => {
+  try {
+    if (!transporter) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Nodemailer transporter is not initialized. Ensure process.env.EMAIL_PASS (and EMAIL_USER) are configured correctly.'
+      });
+    }
+    // Verify connection configuration
+    await transporter.verify();
+    res.json({
+      ok: true,
+      message: 'Nodemailer connection is verified successfully.',
+      configuredUser: process.env.EMAIL_USER || 'preetikaanjana@gmail.com'
+    });
+  } catch (err) {
+    res.status(500).json({
+      ok: false,
+      error: err.message || 'Verification failed',
+      code: err.code,
+      command: err.command,
+      response: err.response
+    });
+  }
 });
 
 const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
