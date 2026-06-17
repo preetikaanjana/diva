@@ -9,7 +9,8 @@ const friendRequestSchema = new mongoose.Schema(
     createdAt: { type: String, required: true },
     acceptedAt: { type: String, default: null },
     declinedAt: { type: String, default: null }
-  }
+  },
+  { id: false }
 );
 
 friendRequestSchema.index({ fromUserId: 1, toUserId: 1 });

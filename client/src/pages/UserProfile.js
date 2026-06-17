@@ -49,16 +49,18 @@ const UserProfile = () => {
         const u = await api.getUser(userId);
         if (cancelled) return;
         setProfileUser(u);
-        const [blogs, allStories, followers, following] = await Promise.all([
-          api.getUserBlogs(userId),
-          api.storiesActive(),
-          api.getFollowers(userId),
-          api.getFollowing(userId)
+
+        let blogs = [], allStories = [], followers = [], following = [];
+        
+        await Promise.all([
+          api.getUserBlogs(userId).then(res => blogs = res).catch(e => console.error('Failed to get user blogs:', e)),
+          api.storiesActive().then(res => allStories = res).catch(e => console.error('Failed to get active stories:', e)),
+          api.getFollowers(userId).then(res => followers = res).catch(e => console.error('Failed to get followers:', e)),
+          api.getFollowing(userId).then(res => following = res).catch(e => console.error('Failed to get following:', e))
         ]);
+
         if (cancelled) return;
         setUserBlogs(Array.isArray(blogs) ? blogs : []);
-        setFollowersList(Array.isArray(followers) ? followers : []);
-        setFollowingList(Array.isArray(following) ? following : []);
         const storiesForUser = (Array.isArray(allStories) ? allStories : [])
           .filter((s) => s.userId === userId)
           .sort(
@@ -66,13 +68,18 @@ const UserProfile = () => {
               new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
           );
         setUserStories(storiesForUser);
+        setFollowersList(Array.isArray(followers) ? followers : []);
+        setFollowingList(Array.isArray(following) ? following : []);
 
         if (currentUser?.id && currentUser.id !== userId) {
-          const [sent, inc, friends] = await Promise.all([
-            api.followsSent(),
-            api.followsIncoming(),
-            api.followsFriends()
+          let sent = [], inc = [], friends = [];
+          
+          await Promise.all([
+            api.followsSent().then(res => sent = res).catch(e => console.error('Failed to get sent requests:', e)),
+            api.followsIncoming().then(res => inc = res).catch(e => console.error('Failed to get incoming requests:', e)),
+            api.followsFriends().then(res => friends = res).catch(e => console.error('Failed to get friends:', e))
           ]);
+
           if (!cancelled) {
             setSentOutgoing(Array.isArray(sent) ? sent : []);
             setPendingIncoming(Array.isArray(inc) ? inc : []);
@@ -83,7 +90,8 @@ const UserProfile = () => {
           setPendingIncoming([]);
           setFriendIds([]);
         }
-      } catch {
+      } catch (e) {
+        console.error(e);
         if (!cancelled) setProfileUser(null);
       } finally {
         if (!cancelled) setProfileLoading(false);
@@ -570,7 +578,7 @@ const UserProfile = () => {
 // Blog Card Component
 function ProfileBlogCard({ blog }) {
   const navigate = useNavigate();
-  const cleanContent = blog.content.replace(/<[^>]*>?/gm, '');
+  const cleanContent = (blog.content || '').replace(/<[^>]*>?/gm, '');
   const displayContent = cleanContent.length > 140 ? cleanContent.slice(0, 140) + '…' : cleanContent;
 
   return (

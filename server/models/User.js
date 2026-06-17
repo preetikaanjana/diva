@@ -16,9 +16,12 @@ const userSchema = new mongoose.Schema(
     profileImage: { type: String, default: null },
     isPrivate: { type: Boolean, default: false },
     savedBlogIds: { type: [String], default: [] },
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null },
     createdAt: { type: String, required: true },
     updatedAt: { type: String, required: true }
-  }
+  },
+  { id: false }
 );
 
 userSchema.index({ username: 1 });

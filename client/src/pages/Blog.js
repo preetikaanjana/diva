@@ -120,18 +120,38 @@ function BlogCard({ post }) {
 const Blog = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
-  const [rawBlogs, setRawBlogs] = useState([]);
+  const [rawBlogs, setRawBlogs] = useState(() => {
+    try {
+      const cached = localStorage.getItem('explore_blogs');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [listError, setListError] = useState(null);
-  const [listLoading, setListLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('explore_blogs');
+      return !cached || JSON.parse(cached).length === 0;
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     let cancelled = false;
-    setListLoading(true);
+    if (rawBlogs.length === 0) {
+      setListLoading(true);
+    }
     setListError(null);
     api
       .listPublishedBlogs()
       .then((list) => {
-        if (!cancelled) setRawBlogs(Array.isArray(list) ? list : []);
+        if (!cancelled) {
+          const bl = Array.isArray(list) ? list : [];
+          setRawBlogs(bl);
+          try { localStorage.setItem('explore_blogs', JSON.stringify(bl)); } catch(e){}
+        }
       })
       .catch((e) => {
         if (!cancelled) setListError(e.message || 'Could not load posts');

@@ -1,4 +1,6 @@
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+// Bypass SSL leaf certificate validation for local proxy/firewall compatibility
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
@@ -12,6 +14,21 @@ const Question = require('./models/Question');
 const FriendRequest = require('./models/FriendRequest');
 const Story = require('./models/Story');
 const { connectDb } = require('./db');
+const nodemailer = require('nodemailer');
+
+// Initialize Nodemailer Transporter using Gmail service
+let transporter = null;
+if (process.env.EMAIL_PASS && process.env.EMAIL_PASS !== 'your_gmail_app_password') {
+  // Strip any spaces from the App Password string for safety
+  const cleanPass = process.env.EMAIL_PASS.replace(/\s+/g, '');
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER || 'preetikaanjana@gmail.com',
+      pass: cleanPass
+    }
+  });
+}
 
 const isProduction = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT) || 4000;
@@ -51,9 +68,18 @@ if (isProduction && clientOrigin) {
 
 app.use(express.json({ limit: '20mb' }));
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    console.log(`${req.method} ${req.originalUrl} - ${res.statusCode} - ${Date.now() - start}ms`);
+  });
+  next();
+});
+
 function publicUser(u, { includePhone = false } = {}) {
   if (!u) return null;
-  const { passwordHash, phone, ...rest } = u;
+  const raw = typeof u.toObject === 'function' ? u.toObject() : u;
+  const { passwordHash, phone, ...rest } = raw;
   const out = { ...rest };
   if (includePhone) out.phone = phone;
   return out;
@@ -156,9 +182,11 @@ async function recalcPosts(userId) {
 }
 
 function normalizeBlog(b, currentUserId) {
-  const likedUserIds = b.likedUserIds || [];
+  if (!b) return null;
+  const raw = typeof b.toObject === 'function' ? b.toObject() : b;
+  const likedUserIds = raw.likedUserIds || [];
   const likes = likedUserIds.length;
-  const out = { ...b, likes };
+  const out = { ...raw, likes };
   delete out.likedUserIds;
   if (currentUserId) {
     out.likedByMe = likedUserIds.includes(currentUserId);
@@ -166,11 +194,10 @@ function normalizeBlog(b, currentUserId) {
   return out;
 }
 
-async function decorateBlog(b, currentUserId) {
+function decorateBlog(b, currentUserId, savedBlogIds = []) {
   const n = normalizeBlog(b, currentUserId);
   if (currentUserId) {
-    const u = await User.findOne({ id: currentUserId }).lean();
-    n.savedByMe = (u?.savedBlogIds || []).includes(b.id);
+    n.savedByMe = savedBlogIds.includes(b.id);
   }
   return n;
 }
@@ -283,6 +310,116 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const emailNorm = email.trim().toLowerCase();
+    const user = await User.findOne({ email: emailNorm });
+    if (!user) {
+      return res.status(404).json({ error: 'No user registered with this email address' });
+    }
+
+    // Generate a 6-digit verification code
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
+    await user.save();
+
+    console.log(`[PASSWORD RESET] Verification code for ${emailNorm}: ${token}`);
+
+    // Send the verification code to the user's email via Nodemailer if configured
+    try {
+      if (transporter) {
+        await transporter.sendMail({
+          from: `"Diva Website" <${process.env.EMAIL_USER || 'preetikaanjana@gmail.com'}>`,
+          to: emailNorm,
+          subject: 'Diva Support - Password Reset Code',
+          text: `Your Diva account password reset verification code is: ${token}. Please enter this code on the reset page.`,
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fff5f8; border-radius: 12px; border: 1px solid #ff69b4; max-width: 500px;">
+              <h2 style="color: #e91e63; text-align: center;">Diva Security</h2>
+              <p>You requested a password reset for your Diva account. Please use the following 6-digit verification code to complete the process:</p>
+              <div style="text-align: center; margin: 24px 0;">
+                <span style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #c2185b; background-color: #fff; padding: 12px 24px; border-radius: 8px; border: 1px solid #f48fb1; display: inline-block;">${token}</span>
+              </div>
+              <p style="color: #666; font-size: 13px;">This code is valid for 1 hour. If you did not request this, please ignore this email.</p>
+            </div>
+          `
+        });
+        console.log(`[PASSWORD RESET] Email sent successfully via Nodemailer to ${emailNorm}`);
+      } else {
+        console.log(`[PASSWORD RESET] Nodemailer not configured. Simulation code for ${emailNorm}: ${token}`);
+      }
+    } catch (mailError) {
+      console.error('Failed to send email via Nodemailer:', mailError);
+    }
+
+    res.json({
+      message: 'A password reset verification code has been generated and sent to your email.'
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Forgot password request failed' });
+  }
+});
+
+app.post('/api/auth/verify-reset-code', async (req, res) => {
+  try {
+    const { email, token } = req.body;
+    if (!email || !token) {
+      return res.status(400).json({ error: 'Email and verification code are required' });
+    }
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+      resetPasswordToken: token.trim(),
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
+    }
+
+    res.json({ message: 'Code verified successfully' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Code verification failed' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email, token, newPassword } = req.body;
+    if (!email || !token || !newPassword) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
+    }
+
+    user.passwordHash = bcrypt.hashSync(newPassword, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Password reset failed' });
+  }
+});
+
 // --- AI Chat ---
 app.post('/api/chat/message', async (req, res) => {
   try {
@@ -328,12 +465,17 @@ app.get('/api/users', async (req, res) => {
 app.get('/api/users/:id/blogs', async (req, res) => {
   try {
     const currentUserId = await optionalUserIdFromAuth(req);
+    let savedBlogIds = [];
+    if (currentUserId) {
+      const me = await User.findOne({ id: currentUserId }).lean();
+      savedBlogIds = me?.savedBlogIds || [];
+    }
     const u = await User.findOne({ id: req.params.id }).lean();
     if (!u) return res.status(404).json({ error: 'User not found' });
     const blogs = await Blog.find({ userId: req.params.id, isDraft: false })
       .sort({ createdAt: -1 })
       .lean();
-    const list = await Promise.all(blogs.map((b) => decorateBlog(b, currentUserId)));
+    const list = blogs.map((b) => decorateBlog(b, currentUserId, savedBlogIds));
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load blogs' });
@@ -470,7 +612,7 @@ app.get('/api/users/me/saved-blogs', requireAuth, async (req, res) => {
     const blogs = await Blog.find({ id: { $in: ids }, isDraft: false }).lean();
     const byId = new Map(blogs.map((b) => [b.id, b]));
     const ordered = ids.map((bid) => byId.get(bid)).filter(Boolean);
-    const list = await Promise.all(ordered.map((b) => decorateBlog(b, req.userId)));
+    const list = ordered.map((b) => decorateBlog(b, req.userId, ids));
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load saved blogs' });
@@ -479,13 +621,15 @@ app.get('/api/users/me/saved-blogs', requireAuth, async (req, res) => {
 
 app.get('/api/users/me/liked-blogs', requireAuth, async (req, res) => {
   try {
+    const u = await User.findOne({ id: req.userId }).lean();
+    const savedBlogIds = u?.savedBlogIds || [];
     const blogs = await Blog.find({
       isDraft: false,
       likedUserIds: req.userId
     })
       .sort({ createdAt: -1 })
       .lean();
-    const list = await Promise.all(blogs.map((b) => decorateBlog(b, req.userId)));
+    const list = blogs.map((b) => decorateBlog(b, req.userId, savedBlogIds));
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load liked blogs' });
@@ -519,8 +663,13 @@ app.post('/api/users/me/saved-blogs/:blogId', requireAuth, async (req, res) => {
 app.get('/api/blogs', async (req, res) => {
   try {
     const currentUserId = await optionalUserIdFromAuth(req);
+    let savedBlogIds = [];
+    if (currentUserId) {
+      const u = await User.findOne({ id: currentUserId }).lean();
+      savedBlogIds = u?.savedBlogIds || [];
+    }
     const blogs = await Blog.find({ isDraft: false }).sort({ createdAt: -1 }).lean();
-    const list = await Promise.all(blogs.map((b) => decorateBlog(b, currentUserId)));
+    const list = blogs.map((b) => decorateBlog(b, currentUserId, savedBlogIds));
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load blogs' });
@@ -529,10 +678,12 @@ app.get('/api/blogs', async (req, res) => {
 
 app.get('/api/blogs/drafts', requireAuth, async (req, res) => {
   try {
+    const u = await User.findOne({ id: req.userId }).lean();
+    const savedBlogIds = u?.savedBlogIds || [];
     const blogs = await Blog.find({ userId: req.userId, isDraft: true })
       .sort({ updatedAt: -1 })
       .lean();
-    const list = await Promise.all(blogs.map((b) => decorateBlog(b, req.userId)));
+    const list = blogs.map((b) => decorateBlog(b, req.userId, savedBlogIds));
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load drafts' });
@@ -542,12 +693,17 @@ app.get('/api/blogs/drafts', requireAuth, async (req, res) => {
 app.get('/api/blogs/:id', async (req, res) => {
   try {
     const currentUserId = await optionalUserIdFromAuth(req);
+    let savedBlogIds = [];
+    if (currentUserId) {
+      const u = await User.findOne({ id: currentUserId }).lean();
+      savedBlogIds = u?.savedBlogIds || [];
+    }
     const b = await Blog.findOne({ id: String(req.params.id) }).lean();
     if (!b) return res.status(404).json({ error: 'Not found' });
     if (b.isDraft && b.userId !== currentUserId) {
       return res.status(404).json({ error: 'Not found' });
     }
-    const blog = await decorateBlog(b, currentUserId);
+    const blog = decorateBlog(b, currentUserId, savedBlogIds);
     res.json(blog);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load blog' });
@@ -585,7 +741,7 @@ app.post('/api/blogs', requireAuth, async (req, res) => {
     };
     await Blog.create(newBlog);
     await recalcPosts(req.userId);
-    const decorated = await decorateBlog(newBlog, req.userId);
+    const decorated = decorateBlog(newBlog, req.userId, u.savedBlogIds || []);
     res.status(201).json(decorated);
   } catch (e) {
     if (e.code === 11000) {
@@ -613,7 +769,8 @@ app.patch('/api/blogs/:id', requireAuth, async (req, res) => {
     b.updatedAt = new Date().toISOString();
     await b.save();
     await recalcPosts(req.userId);
-    const decorated = await decorateBlog(b.toObject(), req.userId);
+    const u = await User.findOne({ id: req.userId }).lean();
+    const decorated = decorateBlog(b.toObject(), req.userId, u?.savedBlogIds || []);
     res.json(decorated);
   } catch (e) {
     res.status(500).json({ error: 'Failed to update blog' });

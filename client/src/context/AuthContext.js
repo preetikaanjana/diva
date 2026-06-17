@@ -12,13 +12,27 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('user');
+  });
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem('user');
+  });
 
   useEffect(() => {
     const token = api.getToken();
     if (!token) {
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('user');
       setLoading(false);
       return;
     }

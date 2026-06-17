@@ -21,52 +21,164 @@ const Profile = () => {
   const location = useLocation();
   const { user, logout, updateUser } = useAuth();
 
-  const [blogs, setBlogs] = useState([]);
-  const [draftCount, setDraftCount] = useState(0);
-  const [userStories, setUserStories] = useState([]);
-  const [followersList, setFollowersList] = useState([]);
-  const [followingList, setFollowingList] = useState([]);
-  const [followingIds, setFollowingIds] = useState(() => new Set());
-  const [savedBlogs, setSavedBlogs] = useState([]);
-  const [likedBlogs, setLikedBlogs] = useState([]);
+  const [blogs, setBlogs] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`user_blogs_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [draftCount, setDraftCount] = useState(() => {
+    if (!user?.id) return 0;
+    try {
+      const cached = localStorage.getItem(`user_draft_count_${user.id}`);
+      return cached ? parseInt(cached, 10) || 0 : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [userStories, setUserStories] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`user_stories_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [followersList, setFollowersList] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`user_followers_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [followingList, setFollowingList] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`user_following_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [followingIds, setFollowingIds] = useState(() => {
+    if (!user?.id) return new Set();
+    try {
+      const cached = localStorage.getItem(`user_following_ids_${user.id}`);
+      return cached ? new Set(JSON.parse(cached)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const [savedBlogs, setSavedBlogs] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`user_saved_blogs_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [likedBlogs, setLikedBlogs] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`user_liked_blogs_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const loadProfileData = React.useCallback(async () => {
     if (!user?.id) return;
-    try {
-      const me = await api.authMe();
-      updateUser(me);
-    } catch {
-      /* session may have expired */
+    
+    let pub = [], drafts = [], stories = [], fol = [], fing = [], saved = [], liked = [];
+    
+    await Promise.all([
+      api.authMe().then(me => updateUser(me)).catch(e => console.error('authMe:', e)),
+      api.getUserBlogs(user.id).then(res => pub = res).catch(e => console.error('user blogs:', e)),
+      api.listDrafts().then(res => drafts = res).catch(e => console.error('drafts:', e)),
+      api.storiesActive().then(res => stories = res).catch(e => console.error('stories:', e)),
+      api.getFollowers(user.id).then(res => fol = res).catch(e => console.error('followers:', e)),
+      api.getFollowing(user.id).then(res => fing = res).catch(e => console.error('following:', e)),
+      api.getSavedBlogs().then(res => saved = res).catch(e => console.error('saved blogs:', e)),
+      api.getLikedBlogs().then(res => liked = res).catch(e => console.error('liked blogs:', e))
+    ]);
+
+    setBlogs(Array.isArray(pub) ? pub : []);
+    if (Array.isArray(pub)) {
+      try { localStorage.setItem(`user_blogs_${user.id}`, JSON.stringify(pub)); } catch(e){}
     }
-    try {
-      const [pub, drafts, stories, fol, fing, saved, liked] = await Promise.all([
-        api.getUserBlogs(user.id),
-        api.listDrafts(),
-        api.storiesActive(),
-        api.getFollowers(user.id),
-        api.getFollowing(user.id),
-        api.getSavedBlogs(),
-        api.getLikedBlogs()
-      ]);
-      setBlogs(Array.isArray(pub) ? pub : []);
-      setDraftCount(Array.isArray(drafts) ? drafts.length : 0);
-      const mine = (Array.isArray(stories) ? stories : [])
-        .filter((story) => story.userId === user.id)
-        .sort(
-          (a, b) =>
-            new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
-        );
-      setUserStories(mine);
-      setFollowersList(Array.isArray(fol) ? fol : []);
-      const fl = Array.isArray(fing) ? fing : [];
-      setFollowingList(fl);
-      setFollowingIds(new Set(fl.map((u) => u.id)));
-      setSavedBlogs(Array.isArray(saved) ? saved : []);
-      setLikedBlogs(Array.isArray(liked) ? liked : []);
-    } catch (e) {
-      console.error(e);
-    }
+    const dCount = Array.isArray(drafts) ? drafts.length : 0;
+    setDraftCount(dCount);
+    try { localStorage.setItem(`user_draft_count_${user.id}`, String(dCount)); } catch(e){}
+
+    const mine = (Array.isArray(stories) ? stories : [])
+      .filter((story) => story.userId === user.id)
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt)
+      );
+    setUserStories(mine);
+    try { localStorage.setItem(`user_stories_${user.id}`, JSON.stringify(mine)); } catch(e){}
+
+    const followers = Array.isArray(fol) ? fol : [];
+    setFollowersList(followers);
+    try { localStorage.setItem(`user_followers_${user.id}`, JSON.stringify(followers)); } catch(e){}
+
+    const fl = Array.isArray(fing) ? fing : [];
+    setFollowingList(fl);
+    try { localStorage.setItem(`user_following_${user.id}`, JSON.stringify(fl)); } catch(e){}
+
+    const fIds = fl.map((u) => u.id);
+    setFollowingIds(new Set(fIds));
+    try { localStorage.setItem(`user_following_ids_${user.id}`, JSON.stringify(fIds)); } catch(e){}
+
+    const savedList = Array.isArray(saved) ? saved : [];
+    setSavedBlogs(savedList);
+    try { localStorage.setItem(`user_saved_blogs_${user.id}`, JSON.stringify(savedList)); } catch(e){}
+
+    const likedList = Array.isArray(liked) ? liked : [];
+    setLikedBlogs(likedList);
+    try { localStorage.setItem(`user_liked_blogs_${user.id}`, JSON.stringify(likedList)); } catch(e){}
   }, [user?.id, updateUser]);
+
+  useEffect(() => {
+    if (user?.id) {
+      try {
+        const cachedBlogs = localStorage.getItem(`user_blogs_${user.id}`);
+        if (cachedBlogs) setBlogs(JSON.parse(cachedBlogs));
+        
+        const cachedDrafts = localStorage.getItem(`user_draft_count_${user.id}`);
+        if (cachedDrafts) setDraftCount(parseInt(cachedDrafts, 10) || 0);
+        
+        const cachedStories = localStorage.getItem(`user_stories_${user.id}`);
+        if (cachedStories) setUserStories(JSON.parse(cachedStories));
+        
+        const cachedFollowers = localStorage.getItem(`user_followers_${user.id}`);
+        if (cachedFollowers) setFollowersList(JSON.parse(cachedFollowers));
+        
+        const cachedFollowing = localStorage.getItem(`user_following_${user.id}`);
+        if (cachedFollowing) setFollowingList(JSON.parse(cachedFollowing));
+        
+        const cachedFollowingIds = localStorage.getItem(`user_following_ids_${user.id}`);
+        if (cachedFollowingIds) setFollowingIds(new Set(JSON.parse(cachedFollowingIds)));
+        
+        const cachedSaved = localStorage.getItem(`user_saved_blogs_${user.id}`);
+        if (cachedSaved) setSavedBlogs(JSON.parse(cachedSaved));
+        
+        const cachedLiked = localStorage.getItem(`user_liked_blogs_${user.id}`);
+        if (cachedLiked) setLikedBlogs(JSON.parse(cachedLiked));
+      } catch (e) {
+        console.error('Error loading cached profile data:', e);
+      }
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     loadProfileData();
@@ -170,7 +282,7 @@ const Profile = () => {
     setShowStoryOptions(true);
   };
 
-  if (!user) return <div>Loading...</div>;
+  if (!user) return null;
 
   return (
     <div className="profile-container">
@@ -755,7 +867,7 @@ function SavedBlogCard({ blog, onChanged }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
-  const cleanContent = blog.content.replace(/<[^>]*>?/gm, '');
+  const cleanContent = (blog.content || '').replace(/<[^>]*>?/gm, '');
   const displayContent = cleanContent.length > 140 ? cleanContent.slice(0, 140) + '…' : cleanContent;
 
   const removeFromSaved = async () => {
@@ -788,7 +900,7 @@ function ProfileBlogCard({ blog, onChanged }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
-  const cleanContent = blog.content.replace(/<[^>]*>?/gm, '');
+  const cleanContent = (blog.content || '').replace(/<[^>]*>?/gm, '');
   const displayContent = cleanContent.length > 140 ? cleanContent.slice(0, 140) + '…' : cleanContent;
 
   const handleEdit = () => {
@@ -806,12 +918,34 @@ function ProfileBlogCard({ blog, onChanged }) {
     }
   };
 
+  const archive = async () => {
+    if (window.confirm('Are you sure you want to archive this blog? It will be removed from your profile and feed.')) {
+      try {
+        const archived = JSON.parse(localStorage.getItem('archivedBlogs') || '[]');
+        const archivedBlog = {
+          ...blog,
+          deletedAt: new Date().toISOString()
+        };
+        archived.push(archivedBlog);
+        localStorage.setItem('archivedBlogs', JSON.stringify(archived));
+        
+        await api.deleteBlog(blog.id);
+        onChanged?.();
+        alert('Blog archived successfully!');
+      } catch (err) {
+        console.error(err);
+        alert('Could not archive blog.');
+      }
+    }
+  };
+
   return (
     <div style={{ background: '#ffe6f0', border: '1px solid #ffc1dd', borderRadius: 12, padding: 0, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <button type="button" onClick={() => setMenuOpen((v) => !v)} style={{ position: 'absolute', right: 8, top: 8, zIndex: 2, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: '18px', width: 32, height: 32 }}>⋯</button>
       {menuOpen && (
         <div style={{ position: 'absolute', right: 8, top: 40, background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', zIndex: 10 }}>
           <div style={{ padding: '8px 12px', cursor: 'pointer' }} onClick={handleEdit}>Edit</div>
+          <div style={{ padding: '8px 12px', cursor: 'pointer' }} onClick={archive}>Archive</div>
           <div style={{ padding: '8px 12px', cursor: 'pointer', color: '#e91e63' }} onClick={remove}>Delete</div>
         </div>
       )}

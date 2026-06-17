@@ -209,3 +209,27 @@ export async function deleteStory(storyId) {
 export async function healthCheck() {
   return request('/health', { skipAuth: true });
 }
+
+export async function authForgotPassword(email) {
+  return request('/auth/forgot-password', {
+    method: 'POST',
+    body: { email },
+    skipAuth: true
+  });
+}
+
+export async function authVerifyResetCode(email, token) {
+  return request('/auth/verify-reset-code', {
+    method: 'POST',
+    body: { email, token },
+    skipAuth: true
+  });
+}
+
+export async function authResetPassword(email, token, newPassword) {
+  return request('/auth/reset-password', {
+    method: 'POST',
+    body: { email, token, newPassword },
+    skipAuth: true
+  });
+}

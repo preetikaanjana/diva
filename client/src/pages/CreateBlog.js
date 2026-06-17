@@ -130,7 +130,7 @@ function CreateBlog() {
         </button>
       </div>
 
-      <form className="diva-form-panel diva-form-panel--blog" onSubmit={(e) => e.preventDefault()}>
+      <form className="create-blog-card-wide" onSubmit={(e) => e.preventDefault()}>
         
         {/* Title */}
         <div>

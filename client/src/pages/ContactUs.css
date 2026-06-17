@@ -22,19 +22,25 @@
 }
 
 .contact-form {
-    background-color: #fce4ec; /* Light pink background */
-    border: 1px solid #e91e63; /* Raspberry border */
-    padding: 20px;
-    border-radius: 10px;
+    background-color: #ffffff; /* Premium white body */
+    border: 2px solid #e91e63; /* Matching pink border */
+    padding: 32px 36px;
+    border-radius: 16px;
     max-width: 600px;
     margin: 20px auto;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(233, 30, 99, 0.1);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .contact-form label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     color: #ad1457; /* Raspberry text color */
+    font-weight: 600;
+    font-size: 14px;
 }
 
 .contact-form input[type="text"],
@@ -42,12 +48,24 @@
 .contact-form select,
 .contact-form textarea {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 12px 14px;
+    margin-bottom: 4px;
+    border: 1px solid #ff80ab; /* Matching soft pink border */
+    border-radius: 8px;
     font-size: 16px;
-    background-color: #fff5f8; /* Soft pink */
+    background-color: #ffffff;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.contact-form input[type="text"]:focus,
+.contact-form input[type="email"]:focus,
+.contact-form select:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: #e91e63;
+    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
 }
 
 .contact-form textarea {
@@ -58,13 +76,45 @@
     background-color: #e91e63; /* Raspberry button */
     color: #fff;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 18px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
     transition: background-color 0.3s;
+    align-self: flex-end;
+    margin-top: 8px;
 }
 
 .submit-button:hover {
     background-color: #c2185b; /* Darker pink on hover */
+}
+
+/* Form Status Messages */
+.form-status {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1.4;
+    text-align: center;
+    font-weight: 500;
+}
+
+.form-status.success {
+    background-color: #f1f8e9;
+    border: 1px solid #c5e1a5;
+    color: #33691e;
+}
+
+.form-status.error {
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+    color: #c62828;
+}
+
+.submit-button:disabled {
+    background-color: #f48fb1;
+    cursor: not-allowed;
+    opacity: 0.8;
 } 

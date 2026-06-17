@@ -21,48 +21,145 @@ function Feed() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [allUsers, setAllUsers] = useState([]);
-  const [blogs, setBlogs] = useState([]);
-  const [stories, setStories] = useState([]);
-  const [pendingIncoming, setPendingIncoming] = useState([]);
-  const [sentOutgoing, setSentOutgoing] = useState([]);
-  const [friendIds, setFriendIds] = useState([]);
+  const [allUsers, setAllUsers] = useState(() => {
+    try {
+      const cached = localStorage.getItem('feed_users');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [blogs, setBlogs] = useState(() => {
+    try {
+      const cached = localStorage.getItem('feed_blogs');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [stories, setStories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('feed_stories');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [pendingIncoming, setPendingIncoming] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`feed_incoming_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [sentOutgoing, setSentOutgoing] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`feed_outgoing_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [friendIds, setFriendIds] = useState(() => {
+    if (!user?.id) return [];
+    try {
+      const cached = localStorage.getItem(`feed_friends_${user.id}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('feed_blogs');
+      return !cached || JSON.parse(cached).length === 0;
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    if (user?.id) {
+      try {
+        const cachedIncoming = localStorage.getItem(`feed_incoming_${user.id}`);
+        if (cachedIncoming) setPendingIncoming(JSON.parse(cachedIncoming));
+        
+        const cachedOutgoing = localStorage.getItem(`feed_outgoing_${user.id}`);
+        if (cachedOutgoing) setSentOutgoing(JSON.parse(cachedOutgoing));
+        
+        const cachedFriends = localStorage.getItem(`feed_friends_${user.id}`);
+        if (cachedFriends) setFriendIds(JSON.parse(cachedFriends));
+      } catch (e) {
+        console.error('Error loading cached feed data:', e);
+      }
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      try {
-        const [users, blogList, storyList] = await Promise.all([
-          api.listUsers(),
-          api.listPublishedBlogs(),
-          api.storiesActive()
-        ]);
-        if (cancelled) return;
-        setAllUsers(Array.isArray(users) ? users : []);
-        const bl = Array.isArray(blogList) ? blogList : [];
-        bl.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setBlogs(bl);
-        setStories(Array.isArray(storyList) ? storyList : []);
-
-        if (user?.id) {
-          const [inc, sent, friends] = await Promise.all([
-            api.followsIncoming(),
-            api.followsSent(),
-            api.followsFriends()
-          ]);
-          if (cancelled) return;
-          setPendingIncoming(Array.isArray(inc) ? inc : []);
-          setSentOutgoing(Array.isArray(sent) ? sent : []);
-          setFriendIds(Array.isArray(friends) ? friends : []);
-        } else {
-          setPendingIncoming([]);
-          setSentOutgoing([]);
-          setFriendIds([]);
-        }
-      } catch (e) {
-        console.error(e);
+      if (blogs.length === 0) {
+        setLoading(true);
       }
+      
+      let users = [], blogList = [], storyList = [];
+      
+      await Promise.all([
+        api.listUsers().then(res => users = res).catch(e => console.error('Failed to list users:', e)),
+        api.listPublishedBlogs().then(res => blogList = res).catch(e => console.error('Failed to list blogs:', e)),
+        api.storiesActive().then(res => storyList = res).catch(e => console.error('Failed to get active stories:', e))
+      ]);
+      
+      if (cancelled) return;
+      setAllUsers(Array.isArray(users) ? users : []);
+      if (Array.isArray(users)) {
+        try { localStorage.setItem('feed_users', JSON.stringify(users)); } catch(e){}
+      }
+      
+      const bl = Array.isArray(blogList) ? blogList : [];
+      bl.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setBlogs(bl);
+      if (Array.isArray(blogList)) {
+        try { localStorage.setItem('feed_blogs', JSON.stringify(bl)); } catch(e){}
+      }
+      
+      setStories(Array.isArray(storyList) ? storyList : []);
+      if (Array.isArray(storyList)) {
+        try { localStorage.setItem('feed_stories', JSON.stringify(storyList)); } catch(e){}
+      }
+
+      if (user?.id) {
+        let inc = [], sent = [], friends = [];
+        
+        await Promise.all([
+          api.followsIncoming().then(res => inc = res).catch(e => console.error('Failed to get incoming follows:', e)),
+          api.followsSent().then(res => sent = res).catch(e => console.error('Failed to get sent follows:', e)),
+          api.followsFriends().then(res => friends = res).catch(e => console.error('Failed to get friends:', e))
+        ]);
+        
+        if (cancelled) return;
+        setPendingIncoming(Array.isArray(inc) ? inc : []);
+        if (Array.isArray(inc)) {
+          try { localStorage.setItem(`feed_incoming_${user.id}`, JSON.stringify(inc)); } catch(e){}
+        }
+        setSentOutgoing(Array.isArray(sent) ? sent : []);
+        if (Array.isArray(sent)) {
+          try { localStorage.setItem(`feed_outgoing_${user.id}`, JSON.stringify(sent)); } catch(e){}
+        }
+        setFriendIds(Array.isArray(friends) ? friends : []);
+        if (Array.isArray(friends)) {
+          try { localStorage.setItem(`feed_friends_${user.id}`, JSON.stringify(friends)); } catch(e){}
+        }
+      } else {
+        setPendingIncoming([]);
+        setSentOutgoing([]);
+        setFriendIds([]);
+      }
+      setLoading(false);
     })();
 
     return () => {
@@ -525,7 +622,9 @@ function Feed() {
         {/* STORIES SECTION END */}
 
         <div className="feed-list">
-          {blogs.length === 0 ? (
+          {loading ? (
+            <div className="empty-feed">Loading recent posts...</div>
+          ) : blogs.length === 0 ? (
             <div className="empty-feed">No recent posts. Create your first blog!</div>
           ) : (
             blogs.map((post) => {

@@ -15,6 +15,7 @@ import BlogDrafts from './pages/BlogDrafts';
 import ForumDetail from './pages/ForumDetail';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
+import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
 import Archive from './pages/Archive';
@@ -27,6 +28,11 @@ import Help from './pages/Help';
 import UserProfile from './pages/UserProfile';
 import './App.css';
 
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/" />;
+};
+
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
@@ -34,10 +40,6 @@ function AppRoutes() {
   if (loading) {
     return <div>Loading...</div>;
   }
-
-  const ProtectedRoute = ({ children }) => {
-    return isAuthenticated ? children : <Navigate to="/" />;
-  };
 
   const showSidebar = isAuthenticated && location.pathname !== '/';
 
@@ -54,6 +56,7 @@ function AppRoutes() {
           {/* Auth routes - accessible from home page, no sidebar */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           
           {/* Protected Routes - only accessible when logged in, with sidebar */}
           <Route path="/profile" element={

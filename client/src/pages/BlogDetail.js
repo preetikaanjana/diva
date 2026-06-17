@@ -102,7 +102,7 @@ function BlogDetail() {
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           ) : (
-            post.content.split('\n').map((paragraph, idx) => (
+            (post.content || '').split('\n').map((paragraph, idx) => (
               <p key={idx}>{paragraph}</p>
             ))
           )}

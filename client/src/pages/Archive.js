@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as api from '../api/divaApi';
 import './Archive.css';
 
 const Archive = () => {
@@ -18,26 +19,36 @@ const Archive = () => {
   }, []);
 
   const getCleanText = (html) => {
+    if (!html || typeof html !== 'string') return "";
     const doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.textContent || "";
   };
 
-  const restoreBlog = (blogId) => {
+  const restoreBlog = async (blogId) => {
     try {
       const archived = JSON.parse(localStorage.getItem('archivedBlogs') || '[]');
       const blogToRestore = archived.find(blog => blog.id === blogId);
       
       if (blogToRestore) {
-        const activeBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
-        activeBlogs.push(blogToRestore);
-        localStorage.setItem('blogs', JSON.stringify(activeBlogs));
+        await api.createBlog({
+          id: blogToRestore.id,
+          title: blogToRestore.title,
+          content: blogToRestore.content,
+          tags: blogToRestore.tags,
+          coverImage: blogToRestore.coverImage,
+          isDraft: blogToRestore.isDraft || false,
+          createdAt: blogToRestore.createdAt
+        });
         
         const updatedArchived = archived.filter(blog => blog.id !== blogId);
         localStorage.setItem('archivedBlogs', JSON.stringify(updatedArchived));
         setArchivedBlogs(updatedArchived);
+        alert('Blog restored successfully!');
+        navigate('/profile');
       }
     } catch (error) {
       console.error('Error restoring blog:', error);
+      alert('Failed to restore blog. Make sure you are logged in and connected.');
     }
   };
 
