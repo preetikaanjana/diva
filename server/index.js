@@ -26,6 +26,9 @@ if (process.env.EMAIL_PASS && process.env.EMAIL_PASS !== 'your_gmail_app_passwor
     auth: {
       user: process.env.EMAIL_USER || 'preetikaanjana@gmail.com',
       pass: cleanPass
+    },
+    tls: {
+      rejectUnauthorized: false
     }
   });
 }
@@ -214,6 +217,20 @@ async function optionalUserIdFromAuth(req) {
 }
 
 // --- Auth ---
+function isPasswordStrong(pw) {
+  if (pw.length < 8) return false;
+  const hasUpperCase = /[A-Z]/.test(pw);
+  const hasLowerCase = /[a-z]/.test(pw);
+  const hasNumbers = /\d/.test(pw);
+  const hasSpecial = /[^A-Za-z0-9]/.test(pw);
+  return hasUpperCase && hasLowerCase && hasNumbers && hasSpecial;
+}
+
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { username, email, password, fullName, phone, city, bio } = req.body;
@@ -221,8 +238,13 @@ app.post('/api/auth/register', async (req, res) => {
     if (!username?.trim() || !email?.trim() || !password || !fullName?.trim()) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email address format' });
+    }
+    if (!isPasswordStrong(password)) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      });
     }
 
     const emailNorm = email.trim().toLowerCase();
@@ -562,6 +584,39 @@ app.patch('/api/users/me', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Email or username already in use' });
     }
     res.status(500).json({ error: 'Update failed' });
+  }
+});
+
+app.delete('/api/users/me', requireAuth, async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required to delete account' });
+    }
+
+    const u = await User.findOne({ id: req.userId });
+    if (!u) return res.status(404).json({ error: 'User not found' });
+
+    if (!bcrypt.compareSync(password, u.passwordHash)) {
+      return res.status(400).json({ error: 'Incorrect password' });
+    }
+
+    const userId = u.id;
+
+    // Cascade delete user data
+    await Blog.deleteMany({ userId });
+    await Story.deleteMany({ userId });
+    await Question.deleteMany({ userId });
+    await Question.updateMany({}, { $pull: { replies: { userId } } });
+    await FriendRequest.deleteMany({
+      $or: [{ fromUserId: userId }, { toUserId: userId }]
+    });
+    await User.deleteOne({ id: userId });
+
+    res.json({ ok: true, message: 'Account deleted successfully' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Failed to delete account' });
   }
 });
 
