@@ -36,6 +36,60 @@ if (process.env.EMAIL_PASS && process.env.EMAIL_PASS !== 'your_gmail_app_passwor
   });
 }
 
+const sendEmail = async ({ to, subject, text, html }) => {
+  const brevoKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.EMAIL_USER || 'preetikaanjana@gmail.com';
+
+  if (brevoKey) {
+    console.log(`[EMAIL] Attempting to send email via Brevo HTTP API to ${to}...`);
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': brevoKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: {
+          name: 'Diva Support',
+          email: senderEmail
+        },
+        to: [{ email: to }],
+        subject: subject,
+        textContent: text,
+        htmlContent: html
+      })
+    });
+
+    const resText = await response.text();
+    if (!response.ok) {
+      throw new Error(`Brevo HTTP API error: ${response.status} - ${resText}`);
+    }
+    console.log(`[EMAIL] Sent successfully via Brevo HTTP API to ${to}`);
+    try {
+      return JSON.parse(resText);
+    } catch {
+      return { raw: resText };
+    }
+  } else if (transporter) {
+    console.log(`[EMAIL] Attempting to send email via SMTP (Nodemailer) to ${to}...`);
+    const info = await transporter.sendMail({
+      from: `"Diva Website" <${senderEmail}>`,
+      to,
+      subject,
+      text,
+      html
+    });
+    console.log(`[EMAIL] Sent successfully via SMTP to ${to}`);
+    return info;
+  } else {
+    console.log(`[EMAIL] No email service configured. Simulation code for ${to}: ${text}`);
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Email service is not configured. Configure BREVO_API_KEY or EMAIL_PASS/EMAIL_USER.');
+    }
+  }
+};
+
 const isProduction = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT) || 4000;
 const DEV_SECRET_FALLBACK = 'diva-local-dev-change-for-production';
@@ -356,34 +410,25 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
     console.log(`[PASSWORD RESET] Verification code for ${emailNorm}: ${token}`);
 
-    // Send the verification code to the user's email via Nodemailer if configured
+    // Send the verification code to the user's email via Nodemailer/Brevo if configured
     try {
-      if (transporter) {
-        await transporter.sendMail({
-          from: `"Diva Website" <${process.env.EMAIL_USER || 'preetikaanjana@gmail.com'}>`,
-          to: emailNorm,
-          subject: 'Diva Support - Password Reset Code',
-          text: `Your Diva account password reset verification code is: ${token}. Please enter this code on the reset page.`,
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fff5f8; border-radius: 12px; border: 1px solid #ff69b4; max-width: 500px;">
-              <h2 style="color: #e91e63; text-align: center;">Diva Security</h2>
-              <p>You requested a password reset for your Diva account. Please use the following 6-digit verification code to complete the process:</p>
-              <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #c2185b; background-color: #fff; padding: 12px 24px; border-radius: 8px; border: 1px solid #f48fb1; display: inline-block;">${token}</span>
-              </div>
-              <p style="color: #666; font-size: 13px;">This code is valid for 1 hour. If you did not request this, please ignore this email.</p>
+      await sendEmail({
+        to: emailNorm,
+        subject: 'Diva Support - Password Reset Code',
+        text: `Your Diva account password reset verification code is: ${token}. Please enter this code on the reset page.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fff5f8; border-radius: 12px; border: 1px solid #ff69b4; max-width: 500px;">
+            <h2 style="color: #e91e63; text-align: center;">Diva Security</h2>
+            <p>You requested a password reset for your Diva account. Please use the following 6-digit verification code to complete the process:</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <span style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #c2185b; background-color: #fff; padding: 12px 24px; border-radius: 8px; border: 1px solid #f48fb1; display: inline-block;">${token}</span>
             </div>
-          `
-        });
-        console.log(`[PASSWORD RESET] Email sent successfully via Nodemailer to ${emailNorm}`);
-      } else {
-        console.log(`[PASSWORD RESET] Nodemailer not configured. Simulation code for ${emailNorm}: ${token}`);
-        if (isProduction) {
-          throw new Error('Email delivery service is not configured on the server. Please check environment variables.');
-        }
-      }
+            <p style="color: #666; font-size: 13px;">This code is valid for 1 hour. If you did not request this, please ignore this email.</p>
+          </div>
+        `
+      });
     } catch (mailError) {
-      console.error('Failed to send email via Nodemailer:', mailError);
+      console.error('Failed to send email:', mailError);
       // Roll back the token on error
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
@@ -1170,16 +1215,45 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/health/email', async (req, res) => {
   try {
+    const brevoKey = process.env.BREVO_API_KEY;
+    if (brevoKey) {
+      console.log('[DIAGNOSTICS] Testing Brevo HTTP API connection...');
+      const response = await fetch('https://api.brevo.com/v3/account', {
+        headers: {
+          'accept': 'application/json',
+          'api-key': brevoKey
+        }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return res.status(400).json({
+          ok: false,
+          service: 'brevo',
+          error: `Brevo API returned status ${response.status}`,
+          details: data
+        });
+      }
+      return res.json({
+        ok: true,
+        service: 'brevo',
+        message: 'Brevo API connection verified successfully.',
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName
+      });
+    }
+
     if (!transporter) {
       return res.status(400).json({
         ok: false,
-        error: 'Nodemailer transporter is not initialized. Ensure process.env.EMAIL_PASS (and EMAIL_USER) are configured correctly.'
+        error: 'Neither BREVO_API_KEY nor Nodemailer SMTP transporter is initialized. Check environment variables.'
       });
     }
     // Verify connection configuration
     await transporter.verify();
     res.json({
       ok: true,
+      service: 'smtp',
       message: 'Nodemailer connection is verified successfully.',
       configuredUser: process.env.EMAIL_USER || 'preetikaanjana@gmail.com'
     });
