@@ -192,7 +192,6 @@ const UserProfile = () => {
 
   const handleCancelRequest = async () => {
     if (!requestStatus?.requestId) return;
-    if (!window.confirm('Withdraw follow request?')) return;
     try {
       await api.followCancel(requestStatus.requestId);
       setRefreshKey((prev) => prev + 1);

@@ -257,7 +257,6 @@ function Feed() {
 
   const handleCancelRequest = async (requestId) => {
     if (!requestId) return;
-    if (!window.confirm('Withdraw follow request?')) return;
     try {
       await api.followCancel(requestId);
       setRefreshKey((k) => k + 1);
