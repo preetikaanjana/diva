@@ -190,6 +190,17 @@ const UserProfile = () => {
     }
   };
 
+  const handleCancelRequest = async () => {
+    if (!requestStatus?.requestId) return;
+    if (!window.confirm('Withdraw follow request?')) return;
+    try {
+      await api.followCancel(requestStatus.requestId);
+      setRefreshKey((prev) => prev + 1);
+    } catch {
+      alert('Could not cancel request.');
+    }
+  };
+
   const handleUnfollow = async () => {
     if (!currentUser?.id || !profileUser?.id) return;
     if (!window.confirm('Unfollow this user? They will be removed from your following list.')) return;
@@ -291,7 +302,7 @@ const UserProfile = () => {
         {/* Profile Actions */}
         <div className="profile-actions">
           {requestStatus?.type === 'sent' && (
-            <button className="profile-btn edit-btn" disabled style={{ background: '#ccc', cursor: 'not-allowed' }}>
+            <button type="button" className="profile-btn archive-btn" onClick={handleCancelRequest}>
               Requested
             </button>
           )}

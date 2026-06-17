@@ -255,6 +255,17 @@ function Feed() {
     }
   };
 
+  const handleCancelRequest = async (requestId) => {
+    if (!requestId) return;
+    if (!window.confirm('Withdraw follow request?')) return;
+    try {
+      await api.followCancel(requestId);
+      setRefreshKey((k) => k + 1);
+    } catch {
+      alert('Could not cancel request.');
+    }
+  };
+
   useEffect(() => {
     const interval = setInterval(() => setRefreshKey((k) => k + 1), 60 * 60 * 1000);
     return () => clearInterval(interval);
@@ -774,8 +785,8 @@ function Feed() {
                   {s.requestStatus === 'requested' ? (
                     <button 
                       className="follow-btn" 
-                      disabled
-                      style={{ background: '#ccc', cursor: 'not-allowed' }}
+                      onClick={() => handleCancelRequest(s.requestId)}
+                      style={{ background: '#f5f5f5', color: '#666', border: '1px solid #ccc', cursor: 'pointer' }}
                     >
                       Requested
                     </button>

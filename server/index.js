@@ -1164,20 +1164,16 @@ app.post('/api/follows', requireAuth, async (req, res) => {
 
     const exists = await FriendRequest.findOne({
       status: 'pending',
-      $or: [
-        { fromUserId: req.userId, toUserId },
-        { fromUserId: toUserId, toUserId: req.userId }
-      ]
+      fromUserId: req.userId,
+      toUserId
     }).lean();
     if (exists) {
       return res.status(400).json({ error: 'Request already exists or connected' });
     }
     const accepted = await FriendRequest.findOne({
       status: 'accepted',
-      $or: [
-        { fromUserId: req.userId, toUserId },
-        { fromUserId: toUserId, toUserId: req.userId }
-      ]
+      fromUserId: req.userId,
+      toUserId
     }).lean();
     if (accepted) {
       return res.status(400).json({ error: 'Request already exists or connected' });
