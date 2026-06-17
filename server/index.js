@@ -275,12 +275,7 @@ async function optionalUserIdFromAuth(req) {
 
 // --- Auth ---
 function isPasswordStrong(pw) {
-  if (pw.length < 8) return false;
-  const hasUpperCase = /[A-Z]/.test(pw);
-  const hasLowerCase = /[a-z]/.test(pw);
-  const hasNumbers = /\d/.test(pw);
-  const hasSpecial = /[^A-Za-z0-9]/.test(pw);
-  return hasUpperCase && hasLowerCase && hasNumbers && hasSpecial;
+  return pw && pw.length >= 6;
 }
 
 function isValidEmail(email) {
@@ -300,7 +295,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
     if (!isPasswordStrong(password)) {
       return res.status(400).json({
-        error: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+        error: 'Password must be at least 6 characters long.'
       });
     }
 
