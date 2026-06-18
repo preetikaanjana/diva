@@ -894,7 +894,19 @@ app.get('/api/blogs', async (req, res) => {
       savedBlogIds = u?.savedBlogIds || [];
     }
     const blogs = await Blog.find({ isDraft: false }).sort({ createdAt: -1 }).lean();
-    const list = blogs.map((b) => decorateBlog(b, currentUserId, savedBlogIds));
+    
+    // Fetch unique author details
+    const authorIds = [...new Set(blogs.map((b) => b.userId).filter(Boolean))];
+    const users = await User.find({ id: { $in: authorIds } }).select('id username profileImage').lean();
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const list = blogs.map((b) => {
+      const dec = decorateBlog(b, currentUserId, savedBlogIds);
+      const userObj = userMap.get(b.userId);
+      dec.authorImage = userObj?.profileImage || null;
+      dec.authorUsername = userObj?.username || b.author || 'User';
+      return dec;
+    });
     res.json(list);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load blogs' });
@@ -929,6 +941,12 @@ app.get('/api/blogs/:id', async (req, res) => {
       return res.status(404).json({ error: 'Not found' });
     }
     const blog = decorateBlog(b, currentUserId, savedBlogIds);
+    
+    // Fetch author details
+    const authorObj = await User.findOne({ id: b.userId }).select('id username profileImage').lean();
+    blog.authorImage = authorObj?.profileImage || null;
+    blog.authorUsername = authorObj?.username || b.author || 'User';
+
     res.json(blog);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load blog' });

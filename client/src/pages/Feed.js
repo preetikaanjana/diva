@@ -666,21 +666,31 @@ function Feed() {
                 )}
                 <div className="feed-card-body">
                 <div className="feed-card-header">
-                  <div className="avatar">{(post.author || 'U').charAt(0).toUpperCase()}</div>
+                  <div className="avatar" style={{ overflow: 'hidden' }}>
+                    {post.authorImage ? (
+                      <img 
+                        src={post.authorImage} 
+                        alt={post.authorUsername || post.author || 'User'} 
+                        style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+                      />
+                    ) : (
+                      (post.authorUsername || post.author || 'U').charAt(0).toUpperCase()
+                    )}
+                  </div>
                   <div className="meta">
                     <div 
                       className="author" 
                       style={{ cursor: 'pointer', fontWeight: '600' }}
                       onClick={() => {
                         const postUser = allUsers.find(
-                          (u) => u.username === post.author || u.id === post.userId
+                          (u) => u.username === (post.authorUsername || post.author) || u.id === post.userId
                         );
                         if (postUser) {
                           handleUsernameClick(postUser.id);
                         }
                       }}
                     >
-                      {post.author || 'User'}
+                      {post.authorUsername || post.author || 'User'}
                     </div>
                     <div className="time">{new Date(post.createdAt).toLocaleString()}</div>
                   </div>

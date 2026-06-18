@@ -128,8 +128,8 @@ function Home() {
             <div className="feature-card">
               <div className="feature-icon"></div>
               <h3>Community Forum</h3>
-              <p>Connect with over 5,000 women and seek mentorship.</p>
-              <div className="feature-highlight">5K+ Members</div>
+              <p>Connect with over 500+ women and seek mentorship.</p>
+              <div className="feature-highlight">500+ Members</div>
             </div>
 
             <div className="feature-card">

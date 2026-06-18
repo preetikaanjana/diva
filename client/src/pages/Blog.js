@@ -79,7 +79,44 @@ function BlogCard({ post }) {
         <img src={post.coverImage} alt="" className="blog-card-cover" />
       )}
       <div className="blog-card-content">
-      <h3>{post.title}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', gap: '8px' }}>
+          <div style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            backgroundColor: '#ff9fc6',
+            display: 'grid',
+            placeItems: 'center',
+            color: '#fff',
+            fontWeight: '600',
+            fontSize: '12px',
+            overflow: 'hidden',
+            flexShrink: 0
+          }}>
+            {post.authorImage ? (
+              <img 
+                src={post.authorImage} 
+                alt={post.authorUsername || post.author || 'User'} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            ) : (
+              (post.authorUsername || post.author || 'U').charAt(0).toUpperCase()
+            )}
+          </div>
+          <span 
+            style={{ 
+              fontWeight: '600', 
+              fontSize: '13px', 
+              color: '#333', 
+              cursor: 'pointer' 
+            }}
+            onClick={() => navigate(`/user/${post.userId}`)}
+          >
+            {post.authorUsername || post.author || 'User'}
+          </span>
+        </div>
+
+        <h3>{post.title}</h3>
       <div className="blog-tags">
         {post.tags?.map((t) => (
           <span className="blog-tag" key={t}>{t}</span>
