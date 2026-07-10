@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import './Home.css';
 import heroBackground from '../images/hero-bg.jpeg';
 
@@ -54,6 +55,7 @@ const GALLERY_STORIES = [
 function Home() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [galleryOpen, setGalleryOpen] = useState(null);
 
   const handleGetStarted = () => {
@@ -76,22 +78,22 @@ function Home() {
     <div className="home">
       <div className="hero-section" style={{ '--hero-bg': `url(${heroBackground})` }}>
         <div className="hero-overlay">
-          <h1>Empower Women, Empower the World</h1>
-          <p>Let's inspire, educate, and create a brighter future for every woman in our community.</p>
+          <h1>{t("Empower Women, Empower the World")}</h1>
+          <p>{t("Let's inspire, educate, and create a brighter future for every woman in our community.")}</p>
         </div>
       </div>
 
       {!isAuthenticated && (
         <div className="community-section">
           <div className="community-content">
-            <h2>Join Our Community</h2>
-            <p>Connect with thousands of women, share your stories, and access exclusive resources</p>
+            <h2>{t("Join Our Community")}</h2>
+            <p>{t("Connect with thousands of women, share your stories, and access exclusive resources")}</p>
             <div className="auth-buttons">
               <button type="button" className="auth-btn login-btn" onClick={handleLogin}>
-                Sign In
+                {t("Sign In")}
               </button>
               <button type="button" className="auth-btn signup-btn" onClick={handleSignup}>
-                Create Account
+                {t("Create Account")}
               </button>
             </div>
           </div>
@@ -101,10 +103,10 @@ function Home() {
       {isAuthenticated && (
         <div className="welcome-section">
           <div className="welcome-content">
-            <h2>Welcome back, {user?.username}!</h2>
-            <p>Ready to continue your journey?</p>
+            <h2>{t("Welcome back, ")}{user?.username}!</h2>
+            <p>{t("Ready to continue your journey?")}</p>
             <button type="button" className="get-started-btn" onClick={handleGetStarted}>
-              Go to Profile
+              {t("Go to Profile")}
             </button>
           </div>
         </div>
@@ -113,30 +115,30 @@ function Home() {
       <div className="main-content-section">
         <div className="container">
           <div className="welcome-header">
-            <h1>Welcome to Diva</h1>
-            <p>Empowering women through knowledge and resources.</p>
+            <h1>{t("Welcome to Diva")}</h1>
+            <p>{t("Empowering women through knowledge and resources.")}</p>
           </div>
 
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon"></div>
-              <h3>Educational Resources</h3>
-              <p>Access a wide range of educational materials and legal support.</p>
-              <div className="feature-highlight">Free Access</div>
+              <h3>{t("Educational Resources")}</h3>
+              <p>{t("Access a wide range of educational materials and legal support.")}</p>
+              <div className="feature-highlight">{t("Free Access")}</div>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon"></div>
-              <h3>Community Forum</h3>
-              <p>Connect with over 500+ women and seek mentorship.</p>
-              <div className="feature-highlight">500+ Members</div>
+              <h3>{t("Community Forum")}</h3>
+              <p>{t("Connect with over 500+ women and seek mentorship.")}</p>
+              <div className="feature-highlight">{t("500+ Members")}</div>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon"></div>
-              <h3>AI Chatbot</h3>
-              <p>Get instant support with our NLP-powered AI assistant.</p>
-              <div className="feature-highlight">24/7 Support</div>
+              <h3>{t("AI Chatbot")}</h3>
+              <p>{t("Get instant support with our NLP-powered AI assistant.")}</p>
+              <div className="feature-highlight">{t("24/7 Support")}</div>
             </div>
           </div>
         </div>
@@ -145,37 +147,37 @@ function Home() {
       <div className="why-choose-section">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose Diva?</h2>
-            <p>Discover what makes our platform unique and empowering</p>
+            <h2>{t("Why Choose Diva?")}</h2>
+            <p>{t("Discover what makes our platform unique and empowering")}</p>
           </div>
 
           <div className="benefits-grid">
             <div className="benefit-item">
               <div className="benefit-icon"></div>
-              <h4>Empowerment Focus</h4>
-              <p>Built specifically for women's growth and success</p>
+              <h4>{t("Empowerment Focus")}</h4>
+              <p>{t("Built specifically for women's growth and success")}</p>
             </div>
             <div className="benefit-item">
               <div className="benefit-icon"></div>
-              <h4>Safe Space</h4>
-              <p>Private, secure environment for open discussions</p>
+              <h4>{t("Safe Space")}</h4>
+              <p>{t("Private, secure environment for open discussions")}</p>
             </div>
             <div className="benefit-item">
               <div className="benefit-icon"></div>
-              <h4>Global Community</h4>
-              <p>Connect with women from around the world</p>
+              <h4>{t("Global Community")}</h4>
+              <p>{t("Connect with women from around the world")}</p>
             </div>
             <div className="benefit-item">
               <div className="benefit-icon"></div>
-              <h4>Always Accessible</h4>
-              <p>Available on all devices, anytime, anywhere</p>
+              <h4>{t("Always Accessible")}</h4>
+              <p>{t("Available on all devices, anytime, anywhere")}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="gallery-section">
-        <h2>Our Community in Action</h2>
+        <h2>{t("Our Community in Action")}</h2>
         <div className="gallery-grid">
           {galleryImages.map((src, idx) => (
             <button
@@ -211,9 +213,9 @@ function Home() {
             <div className="gallery-story-image-wrap">
               <img src={galleryImages[galleryOpen]} alt="" />
             </div>
-            <p className="gallery-story-kicker">Women empowering women</p>
-            <h3 id="gallery-story-title">{GALLERY_STORIES[galleryOpen].title}</h3>
-            <p className="gallery-story-body">{GALLERY_STORIES[galleryOpen].body}</p>
+            <p className="gallery-story-kicker">{t("Women empowering women")}</p>
+            <h3 id="gallery-story-title">{t(GALLERY_STORIES[galleryOpen].title)}</h3>
+            <p className="gallery-story-body">{t(GALLERY_STORIES[galleryOpen].body)}</p>
           </div>
         </div>
       )}
@@ -222,3 +224,4 @@ function Home() {
 }
 
 export default Home;
+

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../api/divaApi';
+import { useLanguage } from '../context/LanguageContext';
 import './Profile.css';
 
 const Profile = () => {
@@ -20,6 +21,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, updateUser } = useAuth();
+  const { t } = useLanguage();
 
   const [blogs, setBlogs] = useState(() => {
     if (!user?.id) return [];
@@ -314,7 +316,7 @@ const Profile = () => {
 
               {/* Profile Stats */}
               <div className="profile-stats">
-                <span><strong>{blogs.length}</strong> blogs</span>
+                <span><strong>{blogs.length}</strong> {t("blogs")}</span>
                 <span 
                   style={{ cursor: 'pointer' }}
                   onClick={(e) => {
@@ -323,7 +325,7 @@ const Profile = () => {
                     setShowFollowers(true);
                   }}
                 >
-                  <strong>{user?.followers || 0}</strong> follower
+                  <strong>{user?.followers || 0}</strong> {t("follower")}
                 </span>
                 <span 
                   style={{ cursor: 'pointer' }}
@@ -333,7 +335,7 @@ const Profile = () => {
                     setShowFollowing(true);
                   }}
                 >
-                  <strong>{user?.following || 0}</strong> following
+                  <strong>{user?.following || 0}</strong> {t("following")}
                 </span>
               </div>
             </div>
@@ -344,7 +346,7 @@ const Profile = () => {
               {user?.city && (
                 <div className="profile-meta-line">📍 {user.city}</div>
               )}
-              <div className="profile-bio">{user?.bio || 'Add a short bio in Edit profile…'}</div>
+              <div className="profile-bio">{user?.bio || t('Add a short bio in Edit profile…')}</div>
             </div>
           </div>
         </div>
@@ -360,7 +362,7 @@ const Profile = () => {
             }}
             style={{ cursor: 'pointer' }}
           >
-            Edit profile
+            {t("Edit Profile")}
           </button>
           <button 
             className="profile-btn archive-btn" 
@@ -371,7 +373,7 @@ const Profile = () => {
             }}
             style={{ cursor: 'pointer' }}
           >
-            View archive
+            {t("View archive")}
           </button>
           
           {/* Settings Button Wrapper with Dropdown */}
@@ -401,7 +403,7 @@ const Profile = () => {
                   }}
                   style={{ cursor: 'pointer' }}
                 >
-                  <span>🔒</span> Change Password
+                  <span>🔒</span> {t("Change Password")}
                 </div>
                 <div 
                   className="settings-item" 
@@ -413,7 +415,7 @@ const Profile = () => {
                   }}
                   style={{ cursor: 'pointer' }}
                 >
-                  <span>🛡️</span> Privacy
+                  <span>🛡️</span> {t("Privacy Policy")}
                 </div>
                 <div 
                   className="settings-item" 
@@ -425,7 +427,7 @@ const Profile = () => {
                   }}
                   style={{ cursor: 'pointer' }}
                 >
-                  <span>❓</span> Help & Support
+                  <span>❓</span> {t("Help Center")}
                 </div>
                 <div className="settings-divider"></div>
                 <div 
@@ -438,7 +440,7 @@ const Profile = () => {
                   }}
                   style={{ cursor: 'pointer' }}
                 >
-                  <span>🚪</span> Log Out
+                  <span>🚪</span> {t("Logout")}
                 </div>
               </div>
             )}
@@ -449,10 +451,10 @@ const Profile = () => {
 
       <div className="create-blog-section">
         <div className="create-blog-card">
-          <h2>Ready to Share Your Thoughts?</h2>
-          <p>Create a new blog post and share your knowledge with the community</p>
+          <h2>{t("Ready to Share Your Thoughts?")}</h2>
+          <p>{t("Create a new blog post and share your knowledge with the community")}</p>
           <button className="create-blog-main-btn" onClick={handleCreateBlog}>
-            ✍️ Create New Blog
+            ✍️ {t("Create")} {t("New Blog")}
           </button>
           {draftCount > 0 && (
             <button
@@ -460,16 +462,16 @@ const Profile = () => {
               className="create-blog-main-btn profile-drafts-btn"
               onClick={() => navigate('/blog/drafts')}
             >
-              📝 View saved drafts ({draftCount})
+              📝 {t("View saved drafts")} ({draftCount})
             </button>
           )}
         </div>
       </div>
 
       <div className="profile-tabs">
-        <button className={`tab-btn ${activeTab === 'grid' ? 'active' : ''}`} onClick={() => setActiveTab('grid')}>📱 Grid</button>
-        <button className={`tab-btn ${activeTab === 'saved' ? 'active' : ''}`} onClick={() => setActiveTab('saved')}>💾 Saved</button>
-        <button className={`tab-btn ${activeTab === 'liked' ? 'active' : ''}`} onClick={() => setActiveTab('liked')}>❤️ Liked</button>
+        <button className={`tab-btn ${activeTab === 'grid' ? 'active' : ''}`} onClick={() => setActiveTab('grid')}>📱 {t("Grid")}</button>
+        <button className={`tab-btn ${activeTab === 'saved' ? 'active' : ''}`} onClick={() => setActiveTab('saved')}>💾 {t("Saved")}</button>
+        <button className={`tab-btn ${activeTab === 'liked' ? 'active' : ''}`} onClick={() => setActiveTab('liked')}>❤️ {t("Liked")}</button>
       </div>
 
       <div className="profile-content">
@@ -478,8 +480,8 @@ const Profile = () => {
             <div className="content-grid">
               <div className="content-placeholder">
                 <div className="placeholder-icon"></div>
-                <p>Your blogs will appear here</p>
-                <button className="create-first-blog-btn" onClick={handleCreateBlog}>Create Your First Blog</button>
+                <p>{t("Your blogs will appear here")}</p>
+                <button className="create-first-blog-btn" onClick={handleCreateBlog}>{t("Create Your First Blog")}</button>
               </div>
             </div>
           ) : (
@@ -496,7 +498,7 @@ const Profile = () => {
             <div className="content-grid">
               <div className="content-placeholder">
                 <div className="placeholder-icon">💾</div>
-                <p>Saved blogs will appear here</p>
+                <p>{t("Saved blogs will appear here")}</p>
               </div>
             </div>
           ) : (

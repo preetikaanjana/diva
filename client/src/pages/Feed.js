@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../api/divaApi';
+import { useLanguage } from '../context/LanguageContext';
 import './Feed.css';
 
 function feedStripHtml(html) {
@@ -18,6 +19,7 @@ function feedStripHtml(html) {
 function Feed() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -421,7 +423,7 @@ function Feed() {
         }}>
           <input
             type="text"
-            placeholder="Search users by username..."
+            placeholder={t("Search users by username...")}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -645,7 +647,7 @@ function Feed() {
 
           {feedStories.length === 0 && (
             <div style={{ padding: '20px', textAlign: 'center', color: '#666', marginLeft: '20px' }}>
-              No stories from your network yet
+              {t("No stories from your network yet")}
             </div>
           )}
         </div>
@@ -653,9 +655,9 @@ function Feed() {
 
         <div className="feed-list">
           {loading ? (
-            <div className="empty-feed">Loading recent posts...</div>
+            <div className="empty-feed">{t("Loading recent posts...")}</div>
           ) : blogs.length === 0 ? (
-            <div className="empty-feed">No recent posts. Create your first blog!</div>
+            <div className="empty-feed">{t("No recent posts. Create your first blog!")}</div>
           ) : (
             blogs.map((post) => {
               const snippet = feedStripHtml(post.content || '');
@@ -699,7 +701,7 @@ function Feed() {
                 <p className="feed-content">
                   {snippet.length > 200 ? (
                     <>
-                      {snippet.slice(0, 200)}… <button type="button" className="blog-readmore" onClick={() => navigate(`/blog/${post.id}`)}>Read more</button>
+                      {snippet.slice(0, 200)}… <button type="button" className="blog-readmore" onClick={() => navigate(`/blog/${post.id}`)}>{t("Read more")}</button>
                     </>
                   ) : (
                     snippet
@@ -721,7 +723,7 @@ function Feed() {
         {/* Pending Friend Requests */}
         {requestSenders.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
-            <div className="suggestions-title">Friend Requests</div>
+            <div className="suggestions-title">{t("Friend Requests")}</div>
             <div className="suggestions">
               {requestSenders.map((sender) => (
                 <div className="suggestion-card" key={sender.id}>
@@ -742,7 +744,7 @@ function Feed() {
                       onClick={() => handleAcceptRequest(sender.requestId)}
                       style={{ fontSize: '12px', padding: '5px 10px' }}
                     >
-                      Accept
+                      {t("Accept")}
                     </button>
                     <button 
                       onClick={() => handleDeclineRequest(sender.requestId)}
@@ -756,7 +758,7 @@ function Feed() {
                         cursor: 'pointer'
                       }}
                     >
-                      Decline
+                      {t("Decline")}
                     </button>
                   </div>
                 </div>
@@ -768,7 +770,7 @@ function Feed() {
         {/* New Users Suggestions */}
         {usersWithStatus.length > 0 && (
           <div>
-            <div className="suggestions-title">Suggestions for you</div>
+            <div className="suggestions-title">{t("Suggestions for you")}</div>
             <div className="suggestions">
               {usersWithStatus.map((s) => (
                 <div className="suggestion-card" key={s.id}>
@@ -797,7 +799,7 @@ function Feed() {
                       onClick={() => handleCancelRequest(s.requestId)}
                       style={{ background: '#f5f5f5', color: '#666', border: '1px solid #ccc', cursor: 'pointer' }}
                     >
-                      Requested
+                      {t("Requested")}
                     </button>
                   ) : s.requestStatus === 'pending' ? (
                     <div style={{ display: 'flex', gap: '5px', flexDirection: 'column' }}>
@@ -806,7 +808,7 @@ function Feed() {
                         onClick={() => handleAcceptRequest(s.requestId)}
                         style={{ fontSize: '12px', padding: '5px 10px' }}
                       >
-                        Accept
+                        {t("Accept")}
                       </button>
                       <button 
                         onClick={() => handleDeclineRequest(s.requestId)}
@@ -820,7 +822,7 @@ function Feed() {
                           cursor: 'pointer'
                         }}
                       >
-                        Decline
+                        {t("Decline")}
                       </button>
                     </div>
                   ) : s.requestStatus === 'follow_back' ? (
@@ -828,14 +830,14 @@ function Feed() {
                       className="follow-btn" 
                       onClick={() => handleSendRequest(s.id)}
                     >
-                      Follow Back
+                      {t("Follow Back")}
                     </button>
                   ) : (
                     <button 
                       className="follow-btn" 
                       onClick={() => handleSendRequest(s.id)}
                     >
-                      Follow
+                      {t("Follow")}
                     </button>
                   )}
                 </div>
@@ -846,9 +848,9 @@ function Feed() {
 
         {usersWithStatus.length === 0 && requestSenders.length === 0 && (
           <div>
-            <div className="suggestions-title">Suggestions for you</div>
+            <div className="suggestions-title">{t("Suggestions for you")}</div>
             <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-              No new users to suggest at the moment.
+              {t("No new users to suggest at the moment.")}
             </div>
           </div>
         )}

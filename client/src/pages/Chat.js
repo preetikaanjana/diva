@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import './Chat.css';
 import { generateNlpResponse } from '../utils/chatbotNlp';
-
-const botName = 'Sakhi';
-const initialMessage = {
-  text: `Hi! I'm ${botName}. I am your companion for legal rights, health, safety, and career guidance. How can I empower you today?`,
-  user: false,
-};
 
 const suggestedPrompts = [
   "Know my Legal Rights",
@@ -24,12 +19,33 @@ function chatApiBaseUrl() {
 }
 
 function Chat() {
-  const [messages, setMessages] = useState([initialMessage]);
+  const { t, language } = useLanguage();
+  const botName = t('Sakhi');
+  const initialMessageText = t("Hi! I'm Sakhi. I am your companion for legal rights, health, safety, and career guidance. How can I empower you today?");
+
+  const [messages, setMessages] = useState([
+    {
+      text: initialMessageText,
+      user: false,
+    }
+  ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showTyping, setShowTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
+
+  // Update initial message text if language changes and it is still present
+  useEffect(() => {
+    setMessages((prev) => {
+      return prev.map((m, idx) => {
+        if (idx === 0 && !m.user) {
+          return { ...m, text: initialMessageText };
+        }
+        return m;
+      });
+    });
+  }, [language, initialMessageText]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,9 +57,10 @@ function Chat() {
   }, [loading]);
 
   const handlePromptClick = (prompt) => {
-    setInput(prompt);
+    const translatedPrompt = t(prompt);
+    setInput(translatedPrompt);
     // Slight delay to allow state update before sending
-    setTimeout(() => handleSend(prompt), 100);
+    setTimeout(() => handleSend(translatedPrompt), 100);
   };
 
   const handleSend = async (customMessage = null) => {
@@ -112,13 +129,13 @@ function Chat() {
             <div className="chat-header-avatar">👩‍⚖️</div> {/* Changed Icon */}
             <div className="chat-header-info">
               <h3>{botName}</h3>
-              <p style={{ fontSize: '10px', margin: 0, opacity: 0.8 }}>Women Empowerment Bot</p>
+              <p style={{ fontSize: '10px', margin: 0, opacity: 0.8 }}>{t("Women Empowerment Bot")}</p>
             </div>
           </div>
           <div className="chat-header-right">
             <div className="online-status">
               <span className="status-dot"></span>
-              <span>Online</span>
+              <span>{t("Online")}</span>
             </div>
           </div>
         </div>
@@ -164,7 +181,7 @@ function Chat() {
                   onClick={() => handlePromptClick(prompt)}
                   type="button"
                 >
-                  {prompt}
+                  {t(prompt)}
                 </button>
               ))}
             </div>
@@ -173,7 +190,7 @@ function Chat() {
           <div className="chat-input">
             <input
               type="text"
-              placeholder="Ask Sakhi regarding your rights..."
+              placeholder={t("Type a message...")}
               value={input}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
@@ -189,4 +206,4 @@ function Chat() {
   );
 }
 
-export default Chat;
+export default Chat;

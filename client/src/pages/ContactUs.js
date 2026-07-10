@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import './ContactUs.css';
 
 function ContactUs() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -38,7 +40,7 @@ function ContactUs() {
       if (response.ok && (result.success === "true" || result.success === true)) {
         setStatus({
           type: 'success',
-          message: 'Thank you! Your concern has been submitted successfully to Preetika Anjana.'
+          message: t('Thank you! Your concern has been submitted successfully to Preetika Anjana.')
         });
         setFormData({
           name: '',
@@ -49,13 +51,13 @@ function ContactUs() {
       } else {
         setStatus({
           type: 'error',
-          message: result.message || 'Something went wrong. Please try again.'
+          message: t(result.message) || t('Something went wrong. Please try again.')
         });
       }
     } catch (error) {
       setStatus({
         type: 'error',
-        message: 'Could not connect to the server. Please check your internet connection and try again.'
+        message: t('Could not connect to the server. Please check your internet connection and try again.')
       });
     } finally {
       setIsSubmitting(false);
@@ -64,7 +66,7 @@ function ContactUs() {
 
   return (
     <div className="contact-section">
-      <h1>Share Your Problem or Concern</h1>
+      <h1>{t("Share Your Problem or Concern")}</h1>
       <form onSubmit={handleSubmit} className="contact-form">
         {status.message && (
           <div className={`form-status ${status.type}`}>
@@ -72,31 +74,31 @@ function ContactUs() {
           </div>
         )}
         
-        <label htmlFor="name">Your Name:</label>
+        <label htmlFor="name">{t("Your Name")}:</label>
         <input 
           type="text" 
           id="name" 
           name="name" 
-          placeholder="Enter your name" 
+          placeholder={t("Enter your name")} 
           value={formData.name}
           onChange={handleChange}
           required 
           disabled={isSubmitting}
         />
 
-        <label htmlFor="email">Your Email:</label>
+        <label htmlFor="email">{t("Your Email")}:</label>
         <input 
           type="email" 
           id="email" 
           name="email" 
-          placeholder="Enter your email" 
+          placeholder={t("Enter your email")} 
           value={formData.email}
           onChange={handleChange}
           required 
           disabled={isSubmitting}
         />
 
-        <label htmlFor="topic">Topic of Concern:</label>
+        <label htmlFor="topic">{t("Topic of Concern:")}</label>
         <select 
           id="topic" 
           name="topic" 
@@ -105,20 +107,20 @@ function ContactUs() {
           required
           disabled={isSubmitting}
         >
-          <option value="Legal Rights">Legal Rights</option>
-          <option value="Education">Education</option>
-          <option value="Marriage Issues">Marriage Issues</option>
-          <option value="Domestic Violence">Domestic Violence</option>
-          <option value="Financial Independence">Financial Independence</option>
-          <option value="Other">Other</option>
+          <option value="Legal Rights">{t("Legal Rights")}</option>
+          <option value="Education">{t("Education")}</option>
+          <option value="Marriage Issues">{t("Marriage Issues")}</option>
+          <option value="Domestic Violence">{t("Domestic Violence")}</option>
+          <option value="Financial Independence">{t("Financial Independence")}</option>
+          <option value="Other">{t("Other")}</option>
         </select>
 
-        <label htmlFor="message">Your Message:</label>
+        <label htmlFor="message">{t("Message")}:</label>
         <textarea 
           id="message" 
           name="message" 
           rows="5" 
-          placeholder="Describe your problem or concern here..." 
+          placeholder={t("Describe your problem or concern here...")} 
           value={formData.message}
           onChange={handleChange}
           required
@@ -126,11 +128,12 @@ function ContactUs() {
         ></textarea>
 
         <button type="submit" className="submit-button" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit'}
+          {isSubmitting ? t('Submitting...') : t('Submit')}
         </button>
       </form>
     </div>
   );
 }
 
-export default ContactUs; 
+export default ContactUs;
+ 

@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
+import LanguageSwitcher from './components/LanguageSwitcher/LanguageSwitcher';
 import { useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Feed from './pages/Feed';
@@ -158,11 +160,14 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <Router>
+          <LanguageSwitcher />
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

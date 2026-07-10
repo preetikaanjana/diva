@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
 
   const navItems = [
     { path: '/home', label: 'Home' },
@@ -43,7 +45,7 @@ const Sidebar = () => {
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          {!isCollapsed && <span className="logo-text">Diva</span>}
+          {!isCollapsed && <span className="logo-text">{t("Diva")}</span>}
         </div>
         <button 
           className="collapse-btn"
@@ -61,7 +63,7 @@ const Sidebar = () => {
                 to={item.path}
                 className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
               >
-                {!isCollapsed && <span className="nav-label">{item.label}</span>}
+                {!isCollapsed && <span className="nav-label">{t(item.label)}</span>}
               </Link>
             </li>
           ))}
@@ -76,12 +78,12 @@ const Sidebar = () => {
             </div>
             <div className="user-details">
               <span className="user-name">{user?.username || 'User'}</span>
-              <span className="user-status">Online</span>
+              <span className="user-status">{t("Online")}</span>
             </div>
           </div>
         )}
         <button className="sidebar-logout-btn" onClick={handleLogout}>
-          {!isCollapsed ? 'Logout' : '🚪'}
+          {!isCollapsed ? t('Logout') : '🚪'}
         </button>
       </div>
     </div>

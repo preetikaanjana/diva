@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import * as api from '../api/divaApi';
 import '../components/Auth/Auth.css'; // Use same styling as Login/Signup
 
 const ForgotPassword = () => {
+  const { t } = useLanguage();
   const [step, setStep] = useState(1); // 1 = request code, 2 = verify code, 3 = reset password
   const [email, setEmail] = useState('');
   const [token, setToken] = useState('');
@@ -22,17 +24,17 @@ const ForgotPassword = () => {
     setSuccess('');
     
     if (!email.trim()) {
-      setError('Please enter your email address');
+      setError(t('Please enter your email address'));
       return;
     }
 
     setLoading(true);
     try {
       await api.authForgotPassword(email.trim());
-      setSuccess('A verification code has been generated and sent to your email.');
+      setSuccess(t('A verification code has been generated and sent to your email.'));
       setStep(2);
     } catch (err) {
-      setError(err.message || 'Failed to request password reset code.');
+      setError(t(err.message) || t('Failed to request password reset code.'));
     } finally {
       setLoading(false);
     }
@@ -44,17 +46,17 @@ const ForgotPassword = () => {
     setSuccess('');
 
     if (!token.trim()) {
-      setError('Please enter the verification code');
+      setError(t('Please enter the verification code'));
       return;
     }
 
     setLoading(true);
     try {
       await api.authVerifyResetCode(email.trim(), token.trim());
-      setSuccess('Code verified successfully! You can now choose a new password.');
+      setSuccess(t('Code verified successfully! You can now choose a new password.'));
       setStep(3);
     } catch (err) {
-      setError(err.message || 'Invalid or expired verification code.');
+      setError(t(err.message) || t('Invalid or expired verification code.'));
     } finally {
       setLoading(false);
     }
@@ -66,29 +68,29 @@ const ForgotPassword = () => {
     setSuccess('');
 
     if (!newPassword || !confirmPassword) {
-      setError('Please fill in all fields');
+      setError(t('Please fill in all fields'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('Passwords do not match'));
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('Password must be at least 6 characters long'));
       return;
     }
 
     setLoading(true);
     try {
       await api.authResetPassword(email.trim(), token.trim(), newPassword);
-      setSuccess('Your password has been reset successfully! Redirecting to login page...');
+      setSuccess(t('Your password has been reset successfully! Redirecting to login page...'));
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setError(err.message || 'Failed to reset password.');
+      setError(t(err.message) || t('Failed to reset password.'));
     } finally {
       setLoading(false);
     }
@@ -98,11 +100,11 @@ const ForgotPassword = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Reset Password</h2>
+          <h2>{t("Reset Password")}</h2>
           <p className="auth-subtitle">
-            {step === 1 && 'Enter your email to receive a verification code'}
-            {step === 2 && 'Enter the 6-digit verification code sent to your email'}
-            {step === 3 && 'Choose a new strong password for your account'}
+            {step === 1 && t('Enter your email to receive a verification code')}
+            {step === 2 && t('Enter the 6-digit verification code sent to your email')}
+            {step === 3 && t('Choose a new strong password for your account')}
           </p>
         </div>
 
@@ -126,20 +128,20 @@ const ForgotPassword = () => {
         {step === 1 && (
           <form onSubmit={handleRequestToken} className="auth-form">
             <div className="form-group">
-              <label htmlFor="email">Email address</label>
+              <label htmlFor="email">{t("Email address")}</label>
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
+                placeholder={t("Enter your email address")}
                 required
                 disabled={loading}
               />
             </div>
 
             <button type="submit" className="auth-button" disabled={loading}>
-              {loading ? 'Sending...' : 'Send Reset Code'}
+              {loading ? t('Sending...') : t('Send Reset Code')}
             </button>
           </form>
         )}
@@ -147,7 +149,7 @@ const ForgotPassword = () => {
         {step === 2 && (
           <form onSubmit={handleVerifyCode} className="auth-form">
             <div className="form-group">
-              <label htmlFor="email">Email address</label>
+              <label htmlFor="email">{t("Email address")}</label>
               <input
                 type="email"
                 id="email"
@@ -157,7 +159,7 @@ const ForgotPassword = () => {
             </div>
 
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <label htmlFor="token" style={{ alignSelf: 'flex-start' }}>Verification Code</label>
+              <label htmlFor="token" style={{ alignSelf: 'flex-start' }}>{t("Verification Code")}</label>
               <input
                 type="text"
                 id="token"
@@ -185,7 +187,7 @@ const ForgotPassword = () => {
             </div>
 
             <button type="submit" className="auth-button" disabled={loading}>
-              {loading ? 'Verifying...' : 'Verify Code'}
+              {loading ? t('Verifying...') : t('Verify Code')}
             </button>
           </form>
         )}
@@ -193,14 +195,14 @@ const ForgotPassword = () => {
         {step === 3 && (
           <form onSubmit={handleResetPassword} className="auth-form">
             <div className="form-group">
-              <label htmlFor="newPassword">New Password</label>
+              <label htmlFor="newPassword">{t("New Password")}</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showNewPassword ? "text" : "password"}
                   id="newPassword"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="At least 6 characters"
+                  placeholder={t("At least 6 characters")}
                   required
                   disabled={loading}
                   style={{ paddingRight: '40px' }}
@@ -237,14 +239,14 @@ const ForgotPassword = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">{t("Confirm Password")}</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your new password"
+                  placeholder={t("Confirm your new password")}
                   required
                   disabled={loading}
                   style={{ paddingRight: '40px' }}
@@ -281,16 +283,16 @@ const ForgotPassword = () => {
             </div>
 
             <button type="submit" className="auth-button" disabled={loading}>
-              {loading ? 'Resetting...' : 'Reset Password'}
+              {loading ? t('Resetting...') : t('Reset Password')}
             </button>
           </form>
         )}
 
         <div className="auth-footer">
           <p>
-            Remembered your password?{' '}
+            {t("Remembered your password?")}{' '}
             <Link to="/login" className="auth-link">
-              Sign In
+              {t("Sign In")}
             </Link>
           </p>
         </div>

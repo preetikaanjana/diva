@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import * as api from '../../api/divaApi';
+import { useLanguage } from '../../context/LanguageContext';
 import './Auth.css';
 
 const Signup = () => {
+  const { t, language } = useLanguage();
   const [step, setStep] = useState(1); // 1 = signup details, 2 = verify email
   const [verificationCode, setVerificationCode] = useState('');
   const [emailForVerification, setEmailForVerification] = useState('');
@@ -54,17 +56,17 @@ const Signup = () => {
       !formData.password ||
       !formData.confirmPassword
     ) {
-      setError('Please fill in all required fields');
+      setError(t('Please fill in all required fields'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Password doesn't match");
+      setError(t("Password doesn't match"));
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('Password must be at least 6 characters long'));
       return;
     }
 
@@ -84,13 +86,13 @@ const Signup = () => {
       if (res.requiresVerification) {
         setEmailForVerification(emailNorm);
         setStep(2);
-        setSuccess('A verification code has been sent to your email.');
+        setSuccess(t('A verification code has been sent to your email.'));
       } else {
         login(res.user, res.token);
         navigate('/profile');
       }
     } catch (err) {
-      setError(err.message || 'Signup failed. Please try again.');
+      setError(t(err.message) || t('Signup failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -102,20 +104,20 @@ const Signup = () => {
     setSuccess('');
 
     if (!verificationCode.trim()) {
-      setError('Please enter the verification code');
+      setError(t('Please enter the verification code'));
       return;
     }
 
     setLoading(true);
     try {
       const { user: u, token } = await api.authVerifyRegistration(emailForVerification, verificationCode.trim());
-      setSuccess('Email verified successfully! Redirecting...');
+      setSuccess(t('Email verified successfully! Redirecting...'));
       setTimeout(() => {
         login(u, token);
         navigate('/profile');
       }, 1500);
     } catch (err) {
-      setError(err.message || 'Invalid or expired verification code.');
+      setError(t(err.message) || t('Invalid or expired verification code.'));
     } finally {
       setLoading(false);
     }
@@ -127,9 +129,9 @@ const Signup = () => {
     setLoading(true);
     try {
       await api.authResendVerificationOtp(emailForVerification);
-      setSuccess('A new verification code has been sent to your email.');
+      setSuccess(t('A new verification code has been sent to your email.'));
     } catch (err) {
-      setError(err.message || 'Failed to resend code.');
+      setError(t(err.message) || t('Failed to resend code.'));
     } finally {
       setLoading(false);
     }
@@ -138,7 +140,7 @@ const Signup = () => {
   return (
     <div className="auth-container auth-container--signup">
       <div className="auth-card auth-card--wide">
-        <h2>{step === 1 ? 'Create your account' : 'Verify your email'}</h2>
+        <h2>{step === 1 ? t('Create your account') : t('Verify your email')}</h2>
 
         {error && <div className="error-message">{error}</div>}
         {success && (
@@ -160,49 +162,49 @@ const Signup = () => {
         {step === 1 && (
           <form onSubmit={handleSubmit} className="auth-form auth-form--grid">
             <div className="form-group">
-              <label htmlFor="fullName">Full name *</label>
+              <label htmlFor="fullName">{t("Full name *")}</label>
               <input
                 type="text"
                 id="fullName"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                placeholder="e.g. Preetika Anjana"
+                placeholder={t("e.g. Preetika Anjana")}
                 required
                 disabled={loading}
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="username">Username *</label>
+              <label htmlFor="username">{t("Username *")}</label>
               <input
                 type="text"
                 id="username"
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="Choose a unique username"
+                placeholder={t("Choose a unique username")}
                 required
                 disabled={loading}
               />
             </div>
 
             <div className="form-group form-group--full">
-              <label htmlFor="email">Email *</label>
+              <label htmlFor="email">{t("Email *")}</label>
               <input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder={t("you@example.com")}
                 required
                 disabled={loading}
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="phone">Phone (optional)</label>
+              <label htmlFor="phone">{t("Phone (optional)")}</label>
               <input
                 type="tel"
                 id="phone"
@@ -215,34 +217,34 @@ const Signup = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="city">City / location (optional)</label>
+              <label htmlFor="city">{t("City / location (optional)")}</label>
               <input
                 type="text"
                 id="city"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                placeholder="Your city"
+                placeholder={t("Your city")}
                 disabled={loading}
               />
             </div>
 
             <div className="form-group form-group--full">
-              <label htmlFor="bio">Bio (optional)</label>
+              <label htmlFor="bio">{t("Bio (optional)")}</label>
               <textarea
                 id="bio"
                 name="bio"
                 rows={3}
                 value={formData.bio}
                 onChange={handleChange}
-                placeholder="A short line about you"
+                placeholder={t("A short line about you")}
                 className="auth-textarea"
                 disabled={loading}
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password *</label>
+              <label htmlFor="password">{t("Password *")}</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -250,7 +252,7 @@ const Signup = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="At least 6 characters"
+                  placeholder={t("At least 6 characters")}
                   required
                   disabled={loading}
                   style={{ paddingRight: '40px' }}
@@ -287,7 +289,7 @@ const Signup = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm password *</label>
+              <label htmlFor="confirmPassword">{t("Confirm password *")}</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -295,7 +297,7 @@ const Signup = () => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="Repeat password"
+                  placeholder={t("Repeat password")}
                   required
                   disabled={loading}
                   style={{ paddingRight: '40px' }}
@@ -332,7 +334,7 @@ const Signup = () => {
             </div>
 
             <button type="submit" className="auth-button form-group--full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? t('Creating account...') : t('Create account')}
             </button>
           </form>
         )}
@@ -340,11 +342,11 @@ const Signup = () => {
         {step === 2 && (
           <form onSubmit={handleVerifyOtp} className="auth-form" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             <p style={{ textAlign: 'center', marginBottom: '20px', color: '#555', fontSize: '14px', lineHeight: '1.5' }}>
-              We sent a 6-digit confirmation code to <strong style={{ color: '#e91e63' }}>{emailForVerification}</strong>. Please enter it below to confirm your account.
+              {t("We sent a 6-digit confirmation code to")} <strong style={{ color: '#e91e63' }}>{emailForVerification}</strong>. {t("Please enter it below to confirm your account.")}
             </p>
 
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', marginBottom: '25px' }}>
-              <label htmlFor="verificationCode" style={{ alignSelf: 'flex-start', marginBottom: '5px' }}>Verification Code</label>
+              <label htmlFor="verificationCode" style={{ alignSelf: 'flex-start', marginBottom: '5px' }}>{t("Verification Code")}</label>
               <input
                 type="text"
                 id="verificationCode"
@@ -372,11 +374,11 @@ const Signup = () => {
             </div>
 
             <button type="submit" className="auth-button form-group--full" disabled={loading}>
-              {loading ? 'Verifying...' : 'Verify & Complete Sign Up'}
+              {loading ? t('Verifying...') : t('Verify & Complete Sign Up')}
             </button>
 
             <div style={{ marginTop: '25px', textAlign: 'center', fontSize: '14px', color: '#666' }}>
-              Didn't receive the code?{' '}
+              {t("Didn't receive the code?")}{' '}
               <button 
                 type="button" 
                 onClick={handleResendOtp} 
@@ -391,7 +393,7 @@ const Signup = () => {
                   padding: 0
                 }}
               >
-                Resend Code
+                {t("Resend Code")}
               </button>
             </div>
           </form>
@@ -400,14 +402,14 @@ const Signup = () => {
         <div className="auth-footer">
           {step === 1 ? (
             <p>
-              Already have an account?{' '}
+              {t("Already have an account?")}{' '}
               <Link to="/login" className="auth-link">
-                Sign in
+                {t("Sign in")}
               </Link>
             </p>
           ) : (
             <p>
-              Need to change your details?{' '}
+              {t("Need to change your details?")}{' '}
               <button 
                 onClick={() => setStep(1)} 
                 style={{ 
@@ -420,7 +422,7 @@ const Signup = () => {
                   padding: 0
                 }}
               >
-                Go Back
+                {t("Go Back")}
               </button>
             </p>
           )}

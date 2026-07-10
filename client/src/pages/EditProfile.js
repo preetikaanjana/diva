@@ -1,12 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import * as api from '../api/divaApi';
 import './CreateBlog.css'; 
 
 function EditProfile() {
-  // We need 'login' (or a specific updateUser function) to update the global state
   const { user, logout, updateUser } = useAuth(); 
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -59,28 +60,28 @@ function EditProfile() {
         }, 400);
     } catch (error) {
         console.error("Failed to save profile", error);
-        alert(error.message || 'Failed to save profile. Please try again.');
+        alert(t('Failed to save profile. Please try again.'));
         setSubmitting(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    const password = window.prompt("To verify your identity, please enter your password to delete your account:");
+    const password = window.prompt(t("To verify your identity, please enter your password to delete your account:"));
     if (password === null) return;
     if (!password.trim()) {
-      alert("Password is required to delete your account.");
+      alert(t("Password is required to delete your account."));
       return;
     }
 
-    if (window.confirm("ARE YOU ABSOLUTELY SURE? This action is permanent and cannot be undone.")) {
+    if (window.confirm(t("ARE YOU ABSOLUTELY SURE? This action is permanent and cannot be undone."))) {
       setSubmitting(true);
       try {
         await api.deleteAccount(password);
-        alert("Your account has been successfully deleted. We are sorry to see you go.");
+        alert(t("Your account has been successfully deleted. We are sorry to see you go."));
         logout();
         navigate('/');
       } catch (err) {
-        alert(err.message || "Failed to delete account. Please verify your password.");
+        alert(t(err.message) || t("Failed to delete account. Please verify your password."));
       } finally {
         setSubmitting(false);
       }
@@ -89,7 +90,7 @@ function EditProfile() {
 
   return (
     <div className="create-blog-wrapper">
-      <h1 className="create-blog-title">Edit Profile</h1>
+      <h1 className="create-blog-title">{t("Edit Profile")}</h1>
 
       <form className="create-blog-card-wide" onSubmit={handleSave}>
         
@@ -148,13 +149,13 @@ function EditProfile() {
                      textDecoration: 'underline'
                  }}
              >
-                 Change Photo
+                 {t("Change Photo")}
              </button>
         </div>
 
         {/* Username */}
         <div>
-          <label className="field-label">Username</label>
+          <label className="field-label">{t("Username")}</label>
           <input 
             className="text-input" 
             value={username} 
@@ -164,7 +165,7 @@ function EditProfile() {
 
         {/* Full Name */}
         <div>
-          <label className="field-label">Full Name</label>
+          <label className="field-label">{t("Full Name")}</label>
           <input 
             className="text-input" 
             value={fullName} 
@@ -174,7 +175,7 @@ function EditProfile() {
 
         {/* Email */}
         <div>
-          <label className="field-label">Email</label>
+          <label className="field-label">{t("Email Address")}</label>
           <input 
             className="text-input" 
             type="email"
@@ -184,29 +185,29 @@ function EditProfile() {
         </div>
 
         <div>
-          <label className="field-label">Phone</label>
+          <label className="field-label">{t("Phone")}</label>
           <input
             className="text-input"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="Optional"
+            placeholder={t("Optional")}
           />
         </div>
 
         <div>
-          <label className="field-label">City / location</label>
+          <label className="field-label">{t("Location")}</label>
           <input
             className="text-input"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="Optional"
+            placeholder={t("Optional")}
           />
         </div>
 
         {/* Bio */}
         <div>
-          <label className="field-label">Bio</label>
+          <label className="field-label">{t("Bio")}</label>
           <textarea 
             className="content-input" 
             rows={4}
@@ -232,7 +233,7 @@ function EditProfile() {
             onClick={() => navigate('/profile')}
             disabled={submitting}
           >
-            Cancel
+            {t("Cancel")}
           </button>
           
           <button 
@@ -240,14 +241,14 @@ function EditProfile() {
             className="publish-btn" 
             disabled={submitting}
           >
-            {submitting ? 'Saving...' : 'Save Changes'}
+            {submitting ? t('Saving...') : t('Save Changes')}
           </button>
         </div>
 
         <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #ffccde' }}>
-          <h3 style={{ color: '#c2185b', fontSize: '18px', marginBottom: '10px' }}>Danger Zone</h3>
+          <h3 style={{ color: '#c2185b', fontSize: '18px', marginBottom: '10px' }}>{t("Danger Zone")}</h3>
           <p style={{ color: '#666', fontSize: '14px', marginBottom: '16px' }}>
-            Deleting your account is permanent. All your blogs, stories, questions, and connections will be deleted forever.
+            {t("Deleting your account is permanent. All your blogs, stories, questions, and connections will be deleted forever.")}
           </p>
           <button
             type="button"
@@ -272,7 +273,7 @@ function EditProfile() {
               e.target.style.color = '#e91e63';
             }}
           >
-            🗑️ Delete Account
+            🗑️ {t("Delete Account")}
           </button>
         </div>
       </form>

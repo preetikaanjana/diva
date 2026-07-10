@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { resourcesData } from '../data/resourcesList';
+import { useLanguage } from '../context/LanguageContext';
 import './Resources.css';
 
 const Resources = () => {
   const [activeCategory, setActiveCategory] = useState('all');
+  const { t } = useLanguage();
 
   const filteredResources =
     activeCategory === 'all'
@@ -16,9 +18,9 @@ const Resources = () => {
         <div className="emergency-content">
           <span className="emergency-icon">🚨</span>
           <div className="emergency-text">
-            <h3>Immediate Help Needed?</h3>
+            <h3>{t("Immediate Help Needed?")}</h3>
             <p>
-              Women Helpline: <strong>1091</strong> | Domestic Abuse: <strong>181</strong> | Police:{' '}
+              {t("Women Helpline: ")}<strong>1091</strong> | {t("Domestic Abuse: ")}<strong>181</strong> | {t("Police: ")}{' '}
               <strong>100</strong>
             </p>
           </div>
@@ -26,8 +28,8 @@ const Resources = () => {
       </div>
 
       <div className="resources-header">
-        <h1>Empowerment Hub</h1>
-        <p>Curated tools, legal aid, and educational materials to support your journey.</p>
+        <h1>{t("Empowerment Hub")}</h1>
+        <p>{t("Curated tools, legal aid, and educational materials to support your journey.")}</p>
       </div>
 
       <div className="category-tabs">
@@ -36,49 +38,49 @@ const Resources = () => {
           className={`tab-btn ${activeCategory === 'all' ? 'active' : ''}`}
           onClick={() => setActiveCategory('all')}
         >
-          All Resources
+          {t("All Resources")}
         </button>
         <button
           type="button"
           className={`tab-btn ${activeCategory === 'legal' ? 'active' : ''}`}
           onClick={() => setActiveCategory('legal')}
         >
-          ⚖️ Legal
+          {t("⚖️ Legal")}
         </button>
         <button
           type="button"
           className={`tab-btn ${activeCategory === 'education' ? 'active' : ''}`}
           onClick={() => setActiveCategory('education')}
         >
-          🎓 Education
+          {t("🎓 Education")}
         </button>
         <button
           type="button"
           className={`tab-btn ${activeCategory === 'health' ? 'active' : ''}`}
           onClick={() => setActiveCategory('health')}
         >
-          🏥 Health
+          {t("🏥 Health")}
         </button>
         <button
           type="button"
           className={`tab-btn ${activeCategory === 'finance' ? 'active' : ''}`}
           onClick={() => setActiveCategory('finance')}
         >
-          💰 Finance
+          {t("💰 Finance")}
         </button>
         <button
           type="button"
           className={`tab-btn ${activeCategory === 'career' ? 'active' : ''}`}
           onClick={() => setActiveCategory('career')}
         >
-          💼 Career
+          {t("💼 Career")}
         </button>
         <button
           type="button"
           className={`tab-btn ${activeCategory === 'safety' ? 'active' : ''}`}
           onClick={() => setActiveCategory('safety')}
         >
-          🛡️ Safety
+          {t("🛡️ Safety")}
         </button>
       </div>
 
@@ -87,11 +89,11 @@ const Resources = () => {
           <div key={resource.id} className="resource-card">
             <div className="card-icon">{resource.icon}</div>
             <div className="card-content">
-              <h3>{resource.title}</h3>
-              <span className={`category-tag ${resource.category}`}>{resource.category}</span>
-              <p>{resource.description}</p>
+              <h3>{t(resource.title)}</h3>
+              <span className={`category-tag ${resource.category}`}>{t(resource.category)}</span>
+              <p>{t(resource.description)}</p>
               <a href={resource.link} target="_blank" rel="noopener noreferrer" className="visit-btn">
-                Visit Website ↗
+                {t("Visit Website ↗")}
               </a>
             </div>
           </div>
@@ -102,3 +104,4 @@ const Resources = () => {
 };
 
 export default Resources;
+
